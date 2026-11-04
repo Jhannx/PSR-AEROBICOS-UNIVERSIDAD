@@ -1,2 +1,6 @@
 # Notas y pendientes desarrollo
 notas-pendientes/
+
+# IDE metadata
+.idea/
+*.iml

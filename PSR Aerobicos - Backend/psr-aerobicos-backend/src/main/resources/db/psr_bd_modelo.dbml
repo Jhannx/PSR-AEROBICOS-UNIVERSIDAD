@@ -1,0 +1,169 @@
+Enum tipo_documento_enum {
+  CC
+  TI
+  CE
+  PA
+}
+
+Enum fuente_registro_enum {
+  ADMIN
+  AUTOREGISTRO
+}
+
+Enum metodo_checkin_enum {
+  QR
+  DOCUMENTO
+  TERMINAL
+  MANUAL
+}
+
+Enum metodo_pago_enum {
+  EFECTIVO
+  NEQUI
+  DAVIPLATA
+  TRANSFERENCIA
+}
+
+Enum tipo_movimiento_enum {
+  ABONO
+  REEMBOLSO
+}
+
+Enum rol_nombre_enum {
+  ADMINISTRADOR
+  RECEPCIONISTA
+  PROFESOR
+  MIEMBRO
+}
+
+Enum accion_auditoria_enum {
+  INSERT
+  UPDATE
+  DELETE
+}
+
+Table rol {
+  id int [pk, increment]
+  nombre rol_nombre_enum [not null, unique]
+}
+
+Table persona {
+  id int [pk, increment]
+  tipo_documento tipo_documento_enum [not null]
+  numero_documento varchar(20) [not null, unique]
+  nombre varchar(100) [not null]
+  apellidos varchar(100) [not null]
+  telefono varchar(20) [not null]
+  fecha_nacimiento date
+  observaciones_salud text
+  fuente_registro fuente_registro_enum [not null, default: 'AUTOREGISTRO']
+  fecha_registro datetime [not null, default: `CURRENT_TIMESTAMP`]
+  activo boolean [not null, default: true]
+}
+
+Table contacto_emergencia {
+  id int [pk, increment]
+  persona_id int [not null, unique, ref: - persona.id]
+  nombre varchar(150)
+  telefono varchar(20)
+  observaciones text
+  actualizado_en datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table usuario {
+  id int [pk, increment]
+  numero_documento varchar(20) [unique]
+  correo varchar(150) [unique]
+  password_hash varchar(255) [not null]
+  persona_id int [ref: > persona.id]
+  activo boolean [not null, default: true]
+  fecha_creacion datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table usuario_rol {
+  id int [pk, increment]
+  usuario_id int [not null, ref: > usuario.id]
+  rol_id int [not null, ref: > rol.id]
+  asignado_en datetime [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (usuario_id, rol_id) [unique, name: 'uq_usuario_rol']
+  }
+}
+
+Table horario {
+  id int [pk, increment]
+  dia_semana tinyint [not null]
+  hora_inicio time [not null]
+  hora_fin time [not null]
+  activo boolean [not null, default: true]
+}
+
+Table sesion {
+  id int [pk, increment]
+  horario_id int [ref: > horario.id]
+  fecha date [not null]
+  hora_inicio datetime [not null]
+  hora_fin datetime
+  profesor_usuario_id int [ref: > usuario.id]
+  cancelada boolean [not null, default: false]
+  total_asistencias int [not null, default: 0]
+  total_recaudo decimal(10,2) [not null, default: 0.00]
+
+  indexes {
+    (horario_id, fecha) [unique, name: 'uq_sesion_horario_fecha']
+  }
+}
+
+Table llegada {
+  id int [pk, increment]
+  persona_id int [not null, ref: > persona.id]
+  sesion_id int [not null, ref: > sesion.id]
+  hora_llegada datetime [not null, default: `CURRENT_TIMESTAMP`]
+  metodo_checkin metodo_checkin_enum [not null, default: 'MANUAL']
+
+  indexes {
+    (persona_id, sesion_id) [unique, name: 'uq_llegada_persona_sesion']
+  }
+}
+
+Table asistencia {
+  id int [pk, increment]
+  llegada_id int [not null, unique, ref: - llegada.id]
+  monto_cobrado decimal(10,2) [not null]
+  marcado_por int [not null, ref: > usuario.id]
+  hora_marcado datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table movimiento_cuenta {
+  id int [pk, increment]
+  persona_id int [not null, ref: > persona.id]
+  llegada_id int [ref: > llegada.id]
+  monto_recibido decimal(10,2) [not null]
+  monto_abonado decimal(10,2) [not null]
+  metodo_pago metodo_pago_enum [not null, default: 'EFECTIVO']
+  tipo_movimiento tipo_movimiento_enum [not null, default: 'ABONO']
+  vuelto_entregado boolean [not null, default: true]
+  fecha_hora datetime [not null, default: `CURRENT_TIMESTAMP`]
+  usuario_id int [not null, ref: > usuario.id]
+  nota text
+}
+
+Table tarifa {
+  id int [pk, default: 1]
+  monto decimal(10,2) [not null]
+  actualizado_en datetime [not null, default: `CURRENT_TIMESTAMP`]
+  actualizado_por int [ref: > usuario.id]
+}
+
+Table historial_auditoria {
+  id int [pk, increment]
+  tabla_afectada varchar(50) [not null]
+  registro_id int [not null]
+  campo varchar(50)
+  valor_anterior text
+  valor_nuevo text
+  accion accion_auditoria_enum [not null]
+  usuario_id int [ref: > usuario.id]
+  fecha_hora datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
