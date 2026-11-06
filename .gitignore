@@ -4,3 +4,14 @@ notas-pendientes/
 # IDE metadata
 .idea/
 *.iml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+env/
+venv/
+
