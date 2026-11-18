@@ -1,6 +1,5 @@
 package org.jhanp_dev.psraerobicosbackend.modules.aerobics.checkin.dao.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.jhanp_dev.psraerobicosbackend.config.database.ConexionDB;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.checkin.dao.interfaces.ILlegadaDAO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.checkin.dto.request.LlegadaRequestDTO;
@@ -21,10 +20,15 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-@RequiredArgsConstructor
 public class LlegadaDAO implements ILlegadaDAO {
 
+    private final Connection conexion;
     private final LlegadaMapper llegadaMapper;
+
+    public LlegadaDAO(LlegadaMapper llegadaMapper) throws SQLException {
+        this.conexion = ConexionDB.getConexion();
+        this.llegadaMapper = llegadaMapper;
+    }
 
     private static final String BASE_SELECT = """
             SELECT id, persona_id, sesion_id, hora_llegada, metodo_checkin
@@ -36,14 +40,11 @@ public class LlegadaDAO implements ILlegadaDAO {
         String sql = BASE_SELECT + " ORDER BY hora_llegada DESC";
         List<LlegadaResponseDTO> llegadas = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    Llegada entidad = mapearFila(rs);
-                    llegadas.add(llegadaMapper.aResponseDTO(entidad));
-                }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Llegada entidad = mapearFila(rs);
+                llegadas.add(llegadaMapper.aResponseDTO(entidad));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al listar llegadas: " + e.getMessage(), e);
@@ -56,15 +57,12 @@ public class LlegadaDAO implements ILlegadaDAO {
         String sql = BASE_SELECT + " WHERE sesion_id = ? ORDER BY hora_llegada ASC";
         List<LlegadaResponseDTO> llegadas = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, sesionId);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    while (rs.next()) {
-                        Llegada entidad = mapearFila(rs);
-                        llegadas.add(llegadaMapper.aResponseDTO(entidad));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, sesionId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Llegada entidad = mapearFila(rs);
+                    llegadas.add(llegadaMapper.aResponseDTO(entidad));
                 }
             }
         } catch (SQLException e) {
@@ -78,15 +76,12 @@ public class LlegadaDAO implements ILlegadaDAO {
         String sql = BASE_SELECT + " WHERE persona_id = ? ORDER BY hora_llegada DESC";
         List<LlegadaResponseDTO> llegadas = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, personaId);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    while (rs.next()) {
-                        Llegada entidad = mapearFila(rs);
-                        llegadas.add(llegadaMapper.aResponseDTO(entidad));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, personaId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Llegada entidad = mapearFila(rs);
+                    llegadas.add(llegadaMapper.aResponseDTO(entidad));
                 }
             }
         } catch (SQLException e) {
@@ -99,15 +94,12 @@ public class LlegadaDAO implements ILlegadaDAO {
     public Optional<LlegadaResponseDTO> obtenerPorId(Integer id) {
         String sql = BASE_SELECT + " WHERE id = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, id);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        Llegada entidad = mapearFila(rs);
-                        return Optional.of(llegadaMapper.aResponseDTO(entidad));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Llegada entidad = mapearFila(rs);
+                    return Optional.of(llegadaMapper.aResponseDTO(entidad));
                 }
             }
         } catch (SQLException e) {
@@ -122,17 +114,14 @@ public class LlegadaDAO implements ILlegadaDAO {
         String sql = "INSERT INTO llegada (persona_id, sesion_id, metodo_checkin) VALUES (?, ?, ?)";
         MetodoCheckin metodo = llegada.getMetodoCheckin() != null ? llegada.getMetodoCheckin() : MetodoCheckin.MANUAL;
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                stmt.setInt(1, llegada.getPersonaId());
-                stmt.setInt(2, llegada.getSesionId());
-                stmt.setString(3, metodo.name());
-                stmt.executeUpdate();
-                try (ResultSet keys = stmt.getGeneratedKeys()) {
-                    if (keys.next()) {
-                        llegada.setId(keys.getInt(1));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, llegada.getPersonaId());
+            stmt.setInt(2, llegada.getSesionId());
+            stmt.setString(3, metodo.name());
+            stmt.executeUpdate();
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                if (keys.next()) {
+                    llegada.setId(keys.getInt(1));
                 }
             }
         } catch (SQLException e) {
@@ -148,15 +137,12 @@ public class LlegadaDAO implements ILlegadaDAO {
         llegada.setId(id);
         String sql = "UPDATE llegada SET persona_id = ?, sesion_id = ?, metodo_checkin = ? WHERE id = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, llegada.getPersonaId());
-                stmt.setInt(2, llegada.getSesionId());
-                stmt.setString(3, llegada.getMetodoCheckin().name());
-                stmt.setInt(4, llegada.getId());
-                return stmt.executeUpdate() > 0;
-            }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, llegada.getPersonaId());
+            stmt.setInt(2, llegada.getSesionId());
+            stmt.setString(3, llegada.getMetodoCheckin().name());
+            stmt.setInt(4, llegada.getId());
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new IllegalStateException("Error al actualizar llegada: " + e.getMessage(), e);
         }
@@ -166,12 +152,9 @@ public class LlegadaDAO implements ILlegadaDAO {
     public boolean eliminar(Integer id) {
         String sql = "DELETE FROM llegada WHERE id = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, id);
-                return stmt.executeUpdate() > 0;
-            }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new IllegalStateException("Error al eliminar llegada: " + e.getMessage(), e);
         }

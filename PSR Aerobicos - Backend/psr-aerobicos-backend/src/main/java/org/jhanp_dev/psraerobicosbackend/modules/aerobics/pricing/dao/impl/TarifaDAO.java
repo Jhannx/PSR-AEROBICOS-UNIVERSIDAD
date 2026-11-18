@@ -1,6 +1,5 @@
 package org.jhanp_dev.psraerobicosbackend.modules.aerobics.pricing.dao.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.jhanp_dev.psraerobicosbackend.config.database.ConexionDB;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.pricing.dao.interfaces.ITarifaDAO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.pricing.dto.request.TarifaRequestDTO;
@@ -20,10 +19,15 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-@RequiredArgsConstructor
 public class TarifaDAO implements ITarifaDAO {
 
+    private final Connection conexion;
     private final TarifaMapper tarifaMapper;
+
+    public TarifaDAO(TarifaMapper tarifaMapper) throws SQLException {
+        this.conexion = ConexionDB.getConexion();
+        this.tarifaMapper = tarifaMapper;
+    }
 
     private static final int TARIFA_SINGLETON_ID = 1;
     private static final String BASE_SELECT = """
@@ -36,14 +40,11 @@ public class TarifaDAO implements ITarifaDAO {
         String sql = BASE_SELECT + " ORDER BY id ASC";
         List<TarifaResponseDTO> tarifas = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    Tarifa entidad = mapearFila(rs);
-                    tarifas.add(tarifaMapper.aResponseDTO(entidad));
-                }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Tarifa entidad = mapearFila(rs);
+                tarifas.add(tarifaMapper.aResponseDTO(entidad));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al listar tarifas: " + e.getMessage(), e);
@@ -55,15 +56,12 @@ public class TarifaDAO implements ITarifaDAO {
     public Optional<TarifaResponseDTO> obtenerPorId(Integer id) {
         String sql = BASE_SELECT + " WHERE id = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, id);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        Tarifa entidad = mapearFila(rs);
-                        return Optional.of(tarifaMapper.aResponseDTO(entidad));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Tarifa entidad = mapearFila(rs);
+                    return Optional.of(tarifaMapper.aResponseDTO(entidad));
                 }
             }
         } catch (SQLException e) {
@@ -83,18 +81,15 @@ public class TarifaDAO implements ITarifaDAO {
         tarifa.setId(TARIFA_SINGLETON_ID);
         String sql = "INSERT INTO tarifa (id, monto, actualizado_por) VALUES (?, ?, ?)";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, tarifa.getId());
-                stmt.setBigDecimal(2, tarifa.getMonto());
-                if (tarifa.getActualizadoPor() != null) {
-                    stmt.setInt(3, tarifa.getActualizadoPor());
-                } else {
-                    stmt.setNull(3, Types.INTEGER);
-                }
-                stmt.executeUpdate();
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, tarifa.getId());
+            stmt.setBigDecimal(2, tarifa.getMonto());
+            if (tarifa.getActualizadoPor() != null) {
+                stmt.setInt(3, tarifa.getActualizadoPor());
+            } else {
+                stmt.setNull(3, Types.INTEGER);
             }
+            stmt.executeUpdate();
         } catch (SQLException e) {
             throw new IllegalStateException("Error al guardar tarifa: " + e.getMessage(), e);
         }
@@ -108,18 +103,15 @@ public class TarifaDAO implements ITarifaDAO {
         tarifa.setId(idFinal);
         String sql = "UPDATE tarifa SET monto = ?, actualizado_por = ? WHERE id = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setBigDecimal(1, tarifa.getMonto());
-                if (tarifa.getActualizadoPor() != null) {
-                    stmt.setInt(2, tarifa.getActualizadoPor());
-                } else {
-                    stmt.setNull(2, Types.INTEGER);
-                }
-                stmt.setInt(3, tarifa.getId());
-                return stmt.executeUpdate() > 0;
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setBigDecimal(1, tarifa.getMonto());
+            if (tarifa.getActualizadoPor() != null) {
+                stmt.setInt(2, tarifa.getActualizadoPor());
+            } else {
+                stmt.setNull(2, Types.INTEGER);
             }
+            stmt.setInt(3, tarifa.getId());
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new IllegalStateException("Error al actualizar tarifa: " + e.getMessage(), e);
         }
@@ -129,12 +121,9 @@ public class TarifaDAO implements ITarifaDAO {
     public boolean eliminar(Integer id) {
         String sql = "DELETE FROM tarifa WHERE id = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, id);
-                return stmt.executeUpdate() > 0;
-            }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new IllegalStateException("Error al eliminar tarifa: " + e.getMessage(), e);
         }

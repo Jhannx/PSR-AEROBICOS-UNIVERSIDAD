@@ -1,6 +1,5 @@
 package org.jhanp_dev.psraerobicosbackend.modules.user.dao.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.jhanp_dev.psraerobicosbackend.config.database.ConexionDB;
 import org.jhanp_dev.psraerobicosbackend.modules.user.dao.interfaces.IUsuarioDAO;
 import org.jhanp_dev.psraerobicosbackend.modules.user.dto.request.UsuarioRequestDTO;
@@ -21,10 +20,15 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-@RequiredArgsConstructor
 public class UsuarioDAO implements IUsuarioDAO {
 
+    private final Connection conexion;
     private final UsuarioMapper usuarioMapper;
+
+    public UsuarioDAO(UsuarioMapper usuarioMapper) throws SQLException {
+        this.conexion = ConexionDB.getConexion();
+        this.usuarioMapper = usuarioMapper;
+    }
 
     private static final String BASE_SELECT = """
             SELECT id, numero_documento, correo, password_hash, persona_id, activo, fecha_creacion
@@ -36,14 +40,11 @@ public class UsuarioDAO implements IUsuarioDAO {
         String sql = BASE_SELECT + " ORDER BY id ASC";
         List<UsuarioResponseDTO> usuarios = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    Usuario entidad = mapearFila(rs);
-                    usuarios.add(usuarioMapper.aResponseDTO(entidad));
-                }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Usuario entidad = mapearFila(rs);
+                usuarios.add(usuarioMapper.aResponseDTO(entidad));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al listar usuarios: " + e.getMessage(), e);
@@ -55,15 +56,12 @@ public class UsuarioDAO implements IUsuarioDAO {
     public Optional<UsuarioResponseDTO> obtenerPorId(Integer id) {
         String sql = BASE_SELECT + " WHERE id = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, id);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        Usuario entidad = mapearFila(rs);
-                        return Optional.of(usuarioMapper.aResponseDTO(entidad));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Usuario entidad = mapearFila(rs);
+                    return Optional.of(usuarioMapper.aResponseDTO(entidad));
                 }
             }
         } catch (SQLException e) {
@@ -76,15 +74,12 @@ public class UsuarioDAO implements IUsuarioDAO {
     public Optional<UsuarioResponseDTO> obtenerPorCorreo(String correo) {
         String sql = BASE_SELECT + " WHERE correo = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, correo);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        Usuario entidad = mapearFila(rs);
-                        return Optional.of(usuarioMapper.aResponseDTO(entidad));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setString(1, correo);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Usuario entidad = mapearFila(rs);
+                    return Optional.of(usuarioMapper.aResponseDTO(entidad));
                 }
             }
         } catch (SQLException e) {
@@ -97,15 +92,12 @@ public class UsuarioDAO implements IUsuarioDAO {
     public Optional<UsuarioResponseDTO> obtenerPorNumeroDocumento(String numeroDocumento) {
         String sql = BASE_SELECT + " WHERE numero_documento = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, numeroDocumento);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        Usuario entidad = mapearFila(rs);
-                        return Optional.of(usuarioMapper.aResponseDTO(entidad));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setString(1, numeroDocumento);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Usuario entidad = mapearFila(rs);
+                    return Optional.of(usuarioMapper.aResponseDTO(entidad));
                 }
             }
         } catch (SQLException e) {
@@ -120,32 +112,29 @@ public class UsuarioDAO implements IUsuarioDAO {
         String sql = "INSERT INTO usuario (numero_documento, correo, password_hash, persona_id, activo) VALUES (?, ?, ?, ?, ?)";
         boolean activo = usuario.getActivo() != null ? usuario.getActivo() : true;
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                if (usuario.getNumeroDocumento() != null) {
-                    stmt.setString(1, usuario.getNumeroDocumento());
-                } else {
-                    stmt.setNull(1, Types.VARCHAR);
-                }
-                if (usuario.getCorreo() != null) {
-                    stmt.setString(2, usuario.getCorreo());
-                } else {
-                    stmt.setNull(2, Types.VARCHAR);
-                }
-                stmt.setString(3, usuario.getPasswordHash());
-                if (usuario.getPersonaId() != null) {
-                    stmt.setInt(4, usuario.getPersonaId());
-                } else {
-                    stmt.setNull(4, Types.INTEGER);
-                }
-                stmt.setBoolean(5, activo);
+        try (PreparedStatement stmt = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            if (usuario.getNumeroDocumento() != null) {
+                stmt.setString(1, usuario.getNumeroDocumento());
+            } else {
+                stmt.setNull(1, Types.VARCHAR);
+            }
+            if (usuario.getCorreo() != null) {
+                stmt.setString(2, usuario.getCorreo());
+            } else {
+                stmt.setNull(2, Types.VARCHAR);
+            }
+            stmt.setString(3, usuario.getPasswordHash());
+            if (usuario.getPersonaId() != null) {
+                stmt.setInt(4, usuario.getPersonaId());
+            } else {
+                stmt.setNull(4, Types.INTEGER);
+            }
+            stmt.setBoolean(5, activo);
 
-                stmt.executeUpdate();
-                try (ResultSet keys = stmt.getGeneratedKeys()) {
-                    if (keys.next()) {
-                        usuario.setId(keys.getInt(1));
-                    }
+            stmt.executeUpdate();
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                if (keys.next()) {
+                    usuario.setId(keys.getInt(1));
                 }
             }
         } catch (SQLException e) {
@@ -169,30 +158,27 @@ public class UsuarioDAO implements IUsuarioDAO {
                 WHERE id = ?
                 """;
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                if (usuario.getNumeroDocumento() != null) {
-                    stmt.setString(1, usuario.getNumeroDocumento());
-                } else {
-                    stmt.setNull(1, Types.VARCHAR);
-                }
-                if (usuario.getCorreo() != null) {
-                    stmt.setString(2, usuario.getCorreo());
-                } else {
-                    stmt.setNull(2, Types.VARCHAR);
-                }
-                stmt.setString(3, usuario.getPasswordHash());
-                if (usuario.getPersonaId() != null) {
-                    stmt.setInt(4, usuario.getPersonaId());
-                } else {
-                    stmt.setNull(4, Types.INTEGER);
-                }
-                stmt.setBoolean(5, usuario.getActivo());
-                stmt.setInt(6, usuario.getId());
-
-                return stmt.executeUpdate() > 0;
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            if (usuario.getNumeroDocumento() != null) {
+                stmt.setString(1, usuario.getNumeroDocumento());
+            } else {
+                stmt.setNull(1, Types.VARCHAR);
             }
+            if (usuario.getCorreo() != null) {
+                stmt.setString(2, usuario.getCorreo());
+            } else {
+                stmt.setNull(2, Types.VARCHAR);
+            }
+            stmt.setString(3, usuario.getPasswordHash());
+            if (usuario.getPersonaId() != null) {
+                stmt.setInt(4, usuario.getPersonaId());
+            } else {
+                stmt.setNull(4, Types.INTEGER);
+            }
+            stmt.setBoolean(5, usuario.getActivo());
+            stmt.setInt(6, usuario.getId());
+
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new IllegalStateException("Error al actualizar usuario: " + e.getMessage(), e);
         }
@@ -202,12 +188,9 @@ public class UsuarioDAO implements IUsuarioDAO {
     public boolean eliminar(Integer id) {
         String sql = "DELETE FROM usuario WHERE id = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, id);
-                return stmt.executeUpdate() > 0;
-            }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new IllegalStateException("Error al eliminar usuario: " + e.getMessage(), e);
         }

@@ -1,6 +1,5 @@
 package org.jhanp_dev.psraerobicosbackend.modules.aerobics.session.dao.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.jhanp_dev.psraerobicosbackend.config.database.ConexionDB;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.session.dao.interfaces.ISesionDAO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.session.dto.request.SesionRequestDTO;
@@ -24,10 +23,15 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-@RequiredArgsConstructor
 public class SesionDAO implements ISesionDAO {
 
+    private final Connection conexion;
     private final SesionMapper sesionMapper;
+
+    public SesionDAO(SesionMapper sesionMapper) throws SQLException {
+        this.conexion = ConexionDB.getConexion();
+        this.sesionMapper = sesionMapper;
+    }
 
     private static final String BASE_SELECT = """
             SELECT id, horario_id, fecha, hora_inicio, hora_fin,
@@ -40,14 +44,11 @@ public class SesionDAO implements ISesionDAO {
         String sql = BASE_SELECT + " ORDER BY fecha DESC, hora_inicio DESC";
         List<SesionResponseDTO> sesiones = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    Sesion entidad = mapearFila(rs);
-                    sesiones.add(sesionMapper.aResponseDTO(entidad));
-                }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Sesion entidad = mapearFila(rs);
+                sesiones.add(sesionMapper.aResponseDTO(entidad));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al listar sesiones: " + e.getMessage(), e);
@@ -60,15 +61,12 @@ public class SesionDAO implements ISesionDAO {
         String sql = BASE_SELECT + " WHERE fecha = ? ORDER BY hora_inicio ASC";
         List<SesionResponseDTO> sesiones = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setDate(1, Date.valueOf(fecha));
-                try (ResultSet rs = stmt.executeQuery()) {
-                    while (rs.next()) {
-                        Sesion entidad = mapearFila(rs);
-                        sesiones.add(sesionMapper.aResponseDTO(entidad));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setDate(1, Date.valueOf(fecha));
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Sesion entidad = mapearFila(rs);
+                    sesiones.add(sesionMapper.aResponseDTO(entidad));
                 }
             }
         } catch (SQLException e) {
@@ -81,15 +79,12 @@ public class SesionDAO implements ISesionDAO {
     public Optional<SesionResponseDTO> obtenerPorId(Integer id) {
         String sql = BASE_SELECT + " WHERE id = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, id);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        Sesion entidad = mapearFila(rs);
-                        return Optional.of(sesionMapper.aResponseDTO(entidad));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Sesion entidad = mapearFila(rs);
+                    return Optional.of(sesionMapper.aResponseDTO(entidad));
                 }
             }
         } catch (SQLException e) {
@@ -111,35 +106,32 @@ public class SesionDAO implements ISesionDAO {
         int totalAsistencias = sesion.getTotalAsistencias() != null ? sesion.getTotalAsistencias() : 0;
         BigDecimal totalRecaudo = sesion.getTotalRecaudo() != null ? sesion.getTotalRecaudo() : BigDecimal.ZERO;
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                if (sesion.getHorarioId() != null) {
-                    stmt.setInt(1, sesion.getHorarioId());
-                } else {
-                    stmt.setNull(1, Types.INTEGER);
-                }
-                stmt.setDate(2, Date.valueOf(sesion.getFecha()));
-                stmt.setTimestamp(3, Timestamp.valueOf(sesion.getHoraInicio()));
-                if (sesion.getHoraFin() != null) {
-                    stmt.setTimestamp(4, Timestamp.valueOf(sesion.getHoraFin()));
-                } else {
-                    stmt.setNull(4, Types.TIMESTAMP);
-                }
-                if (sesion.getProfesorUsuarioId() != null) {
-                    stmt.setInt(5, sesion.getProfesorUsuarioId());
-                } else {
-                    stmt.setNull(5, Types.INTEGER);
-                }
-                stmt.setBoolean(6, cancelada);
-                stmt.setInt(7, totalAsistencias);
-                stmt.setBigDecimal(8, totalRecaudo);
+        try (PreparedStatement stmt = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            if (sesion.getHorarioId() != null) {
+                stmt.setInt(1, sesion.getHorarioId());
+            } else {
+                stmt.setNull(1, Types.INTEGER);
+            }
+            stmt.setDate(2, Date.valueOf(sesion.getFecha()));
+            stmt.setTimestamp(3, Timestamp.valueOf(sesion.getHoraInicio()));
+            if (sesion.getHoraFin() != null) {
+                stmt.setTimestamp(4, Timestamp.valueOf(sesion.getHoraFin()));
+            } else {
+                stmt.setNull(4, Types.TIMESTAMP);
+            }
+            if (sesion.getProfesorUsuarioId() != null) {
+                stmt.setInt(5, sesion.getProfesorUsuarioId());
+            } else {
+                stmt.setNull(5, Types.INTEGER);
+            }
+            stmt.setBoolean(6, cancelada);
+            stmt.setInt(7, totalAsistencias);
+            stmt.setBigDecimal(8, totalRecaudo);
 
-                stmt.executeUpdate();
-                try (ResultSet keys = stmt.getGeneratedKeys()) {
-                    if (keys.next()) {
-                        sesion.setId(keys.getInt(1));
-                    }
+            stmt.executeUpdate();
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                if (keys.next()) {
+                    sesion.setId(keys.getInt(1));
                 }
             }
         } catch (SQLException e) {
@@ -168,33 +160,30 @@ public class SesionDAO implements ISesionDAO {
                 WHERE id = ?
                 """;
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                if (sesion.getHorarioId() != null) {
-                    stmt.setInt(1, sesion.getHorarioId());
-                } else {
-                    stmt.setNull(1, Types.INTEGER);
-                }
-                stmt.setDate(2, Date.valueOf(sesion.getFecha()));
-                stmt.setTimestamp(3, Timestamp.valueOf(sesion.getHoraInicio()));
-                if (sesion.getHoraFin() != null) {
-                    stmt.setTimestamp(4, Timestamp.valueOf(sesion.getHoraFin()));
-                } else {
-                    stmt.setNull(4, Types.TIMESTAMP);
-                }
-                if (sesion.getProfesorUsuarioId() != null) {
-                    stmt.setInt(5, sesion.getProfesorUsuarioId());
-                } else {
-                    stmt.setNull(5, Types.INTEGER);
-                }
-                stmt.setBoolean(6, sesion.getCancelada());
-                stmt.setInt(7, sesion.getTotalAsistencias());
-                stmt.setBigDecimal(8, sesion.getTotalRecaudo());
-                stmt.setInt(9, sesion.getId());
-
-                return stmt.executeUpdate() > 0;
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            if (sesion.getHorarioId() != null) {
+                stmt.setInt(1, sesion.getHorarioId());
+            } else {
+                stmt.setNull(1, Types.INTEGER);
             }
+            stmt.setDate(2, Date.valueOf(sesion.getFecha()));
+            stmt.setTimestamp(3, Timestamp.valueOf(sesion.getHoraInicio()));
+            if (sesion.getHoraFin() != null) {
+                stmt.setTimestamp(4, Timestamp.valueOf(sesion.getHoraFin()));
+            } else {
+                stmt.setNull(4, Types.TIMESTAMP);
+            }
+            if (sesion.getProfesorUsuarioId() != null) {
+                stmt.setInt(5, sesion.getProfesorUsuarioId());
+            } else {
+                stmt.setNull(5, Types.INTEGER);
+            }
+            stmt.setBoolean(6, sesion.getCancelada());
+            stmt.setInt(7, sesion.getTotalAsistencias());
+            stmt.setBigDecimal(8, sesion.getTotalRecaudo());
+            stmt.setInt(9, sesion.getId());
+
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new IllegalStateException("Error al actualizar sesion: " + e.getMessage(), e);
         }
@@ -204,12 +193,9 @@ public class SesionDAO implements ISesionDAO {
     public boolean eliminar(Integer id) {
         String sql = "DELETE FROM sesion WHERE id = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, id);
-                return stmt.executeUpdate() > 0;
-            }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new IllegalStateException("Error al eliminar sesion: " + e.getMessage(), e);
         }

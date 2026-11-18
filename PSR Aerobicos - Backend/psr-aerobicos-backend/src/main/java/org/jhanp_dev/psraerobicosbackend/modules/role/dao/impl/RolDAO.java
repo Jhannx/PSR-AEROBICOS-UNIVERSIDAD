@@ -1,6 +1,5 @@
 package org.jhanp_dev.psraerobicosbackend.modules.role.dao.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.jhanp_dev.psraerobicosbackend.config.database.ConexionDB;
 import org.jhanp_dev.psraerobicosbackend.modules.role.dao.interfaces.IRolDAO;
 import org.jhanp_dev.psraerobicosbackend.modules.role.dto.request.RolRequestDTO;
@@ -20,24 +19,26 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-@RequiredArgsConstructor
 public class RolDAO implements IRolDAO {
 
+    private final Connection conexion;
     private final RolMapper rolMapper;
+
+    public RolDAO(RolMapper rolMapper) throws SQLException {
+        this.conexion = ConexionDB.getConexion();
+        this.rolMapper = rolMapper;
+    }
 
     @Override
     public List<RolResponseDTO> listarTodos() {
         String sql = "SELECT id, nombre FROM rol ORDER BY id ASC";
         List<RolResponseDTO> roles = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    Rol entidad = mapearFila(rs);
-                    roles.add(rolMapper.aResponseDTO(entidad));
-                }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Rol entidad = mapearFila(rs);
+                roles.add(rolMapper.aResponseDTO(entidad));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al listar roles: " + e.getMessage(), e);
@@ -49,15 +50,12 @@ public class RolDAO implements IRolDAO {
     public Optional<RolResponseDTO> obtenerPorId(Integer id) {
         String sql = "SELECT id, nombre FROM rol WHERE id = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, id);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        Rol entidad = mapearFila(rs);
-                        return Optional.of(rolMapper.aResponseDTO(entidad));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Rol entidad = mapearFila(rs);
+                    return Optional.of(rolMapper.aResponseDTO(entidad));
                 }
             }
         } catch (SQLException e) {
@@ -70,15 +68,12 @@ public class RolDAO implements IRolDAO {
     public Optional<RolResponseDTO> obtenerPorNombre(RolNombre nombre) {
         String sql = "SELECT id, nombre FROM rol WHERE nombre = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, nombre.name());
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        Rol entidad = mapearFila(rs);
-                        return Optional.of(rolMapper.aResponseDTO(entidad));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setString(1, nombre.name());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Rol entidad = mapearFila(rs);
+                    return Optional.of(rolMapper.aResponseDTO(entidad));
                 }
             }
         } catch (SQLException e) {
@@ -92,15 +87,12 @@ public class RolDAO implements IRolDAO {
         Rol rol = rolMapper.aEntidad(dto);
         String sql = "INSERT INTO rol (nombre) VALUES (?)";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                stmt.setString(1, rol.getNombre().name());
-                stmt.executeUpdate();
-                try (ResultSet keys = stmt.getGeneratedKeys()) {
-                    if (keys.next()) {
-                        rol.setId(keys.getInt(1));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, rol.getNombre().name());
+            stmt.executeUpdate();
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                if (keys.next()) {
+                    rol.setId(keys.getInt(1));
                 }
             }
         } catch (SQLException e) {
@@ -115,13 +107,10 @@ public class RolDAO implements IRolDAO {
         rol.setId(id);
         String sql = "UPDATE rol SET nombre = ? WHERE id = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, rol.getNombre().name());
-                stmt.setInt(2, rol.getId());
-                return stmt.executeUpdate() > 0;
-            }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setString(1, rol.getNombre().name());
+            stmt.setInt(2, rol.getId());
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new IllegalStateException("Error al actualizar rol: " + e.getMessage(), e);
         }
@@ -131,12 +120,9 @@ public class RolDAO implements IRolDAO {
     public boolean eliminar(Integer id) {
         String sql = "DELETE FROM rol WHERE id = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, id);
-                return stmt.executeUpdate() > 0;
-            }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new IllegalStateException("Error al eliminar rol: " + e.getMessage(), e);
         }

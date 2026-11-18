@@ -1,6 +1,5 @@
 package org.jhanp_dev.psraerobicosbackend.modules.person.dao.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.jhanp_dev.psraerobicosbackend.config.database.ConexionDB;
 import org.jhanp_dev.psraerobicosbackend.modules.person.dao.interfaces.IPersonaDAO;
 import org.jhanp_dev.psraerobicosbackend.modules.person.dto.request.PersonaRequestDTO;
@@ -24,10 +23,15 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-@RequiredArgsConstructor
 public class PersonaDAO implements IPersonaDAO {
 
+    private final Connection conexion;
     private final PersonaMapper personaMapper;
+
+    public PersonaDAO(PersonaMapper personaMapper) throws SQLException {
+        this.conexion = ConexionDB.getConexion();
+        this.personaMapper = personaMapper;
+    }
 
     private static final String BASE_SELECT = """
             SELECT id, tipo_documento, numero_documento, nombre, apellidos, telefono,
@@ -40,14 +44,11 @@ public class PersonaDAO implements IPersonaDAO {
         String sql = BASE_SELECT + " ORDER BY id ASC";
         List<PersonaResponseDTO> personas = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    Persona entidad = mapearFila(rs);
-                    personas.add(personaMapper.aResponseDTO(entidad));
-                }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Persona entidad = mapearFila(rs);
+                personas.add(personaMapper.aResponseDTO(entidad));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al listar personas: " + e.getMessage(), e);
@@ -59,15 +60,12 @@ public class PersonaDAO implements IPersonaDAO {
     public Optional<PersonaResponseDTO> obtenerPorId(Integer id) {
         String sql = BASE_SELECT + " WHERE id = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, id);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        Persona entidad = mapearFila(rs);
-                        return Optional.of(personaMapper.aResponseDTO(entidad));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Persona entidad = mapearFila(rs);
+                    return Optional.of(personaMapper.aResponseDTO(entidad));
                 }
             }
         } catch (SQLException e) {
@@ -80,15 +78,12 @@ public class PersonaDAO implements IPersonaDAO {
     public Optional<PersonaResponseDTO> obtenerPorNumeroDocumento(String numeroDocumento) {
         String sql = BASE_SELECT + " WHERE numero_documento = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, numeroDocumento);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        Persona entidad = mapearFila(rs);
-                        return Optional.of(personaMapper.aResponseDTO(entidad));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setString(1, numeroDocumento);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Persona entidad = mapearFila(rs);
+                    return Optional.of(personaMapper.aResponseDTO(entidad));
                 }
             }
         } catch (SQLException e) {
@@ -111,32 +106,29 @@ public class PersonaDAO implements IPersonaDAO {
                 : FuenteRegistro.AUTOREGISTRO;
         boolean activo = persona.getActivo() != null ? persona.getActivo() : true;
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                stmt.setString(1, persona.getTipoDocumento().name());
-                stmt.setString(2, persona.getNumeroDocumento());
-                stmt.setString(3, persona.getNombre());
-                stmt.setString(4, persona.getApellidos());
-                stmt.setString(5, persona.getTelefono());
-                if (persona.getFechaNacimiento() != null) {
-                    stmt.setDate(6, Date.valueOf(persona.getFechaNacimiento()));
-                } else {
-                    stmt.setNull(6, Types.DATE);
-                }
-                if (persona.getObservacionesSalud() != null) {
-                    stmt.setString(7, persona.getObservacionesSalud());
-                } else {
-                    stmt.setNull(7, Types.VARCHAR);
-                }
-                stmt.setString(8, fuente.name());
-                stmt.setBoolean(9, activo);
+        try (PreparedStatement stmt = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, persona.getTipoDocumento().name());
+            stmt.setString(2, persona.getNumeroDocumento());
+            stmt.setString(3, persona.getNombre());
+            stmt.setString(4, persona.getApellidos());
+            stmt.setString(5, persona.getTelefono());
+            if (persona.getFechaNacimiento() != null) {
+                stmt.setDate(6, Date.valueOf(persona.getFechaNacimiento()));
+            } else {
+                stmt.setNull(6, Types.DATE);
+            }
+            if (persona.getObservacionesSalud() != null) {
+                stmt.setString(7, persona.getObservacionesSalud());
+            } else {
+                stmt.setNull(7, Types.VARCHAR);
+            }
+            stmt.setString(8, fuente.name());
+            stmt.setBoolean(9, activo);
 
-                stmt.executeUpdate();
-                try (ResultSet keys = stmt.getGeneratedKeys()) {
-                    if (keys.next()) {
-                        persona.setId(keys.getInt(1));
-                    }
+            stmt.executeUpdate();
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                if (keys.next()) {
+                    persona.setId(keys.getInt(1));
                 }
             }
         } catch (SQLException e) {
@@ -165,30 +157,27 @@ public class PersonaDAO implements IPersonaDAO {
                 WHERE id = ?
                 """;
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, persona.getTipoDocumento().name());
-                stmt.setString(2, persona.getNumeroDocumento());
-                stmt.setString(3, persona.getNombre());
-                stmt.setString(4, persona.getApellidos());
-                stmt.setString(5, persona.getTelefono());
-                if (persona.getFechaNacimiento() != null) {
-                    stmt.setDate(6, Date.valueOf(persona.getFechaNacimiento()));
-                } else {
-                    stmt.setNull(6, Types.DATE);
-                }
-                if (persona.getObservacionesSalud() != null) {
-                    stmt.setString(7, persona.getObservacionesSalud());
-                } else {
-                    stmt.setNull(7, Types.VARCHAR);
-                }
-                stmt.setString(8, persona.getFuenteRegistro().name());
-                stmt.setBoolean(9, persona.getActivo());
-                stmt.setInt(10, persona.getId());
-
-                return stmt.executeUpdate() > 0;
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setString(1, persona.getTipoDocumento().name());
+            stmt.setString(2, persona.getNumeroDocumento());
+            stmt.setString(3, persona.getNombre());
+            stmt.setString(4, persona.getApellidos());
+            stmt.setString(5, persona.getTelefono());
+            if (persona.getFechaNacimiento() != null) {
+                stmt.setDate(6, Date.valueOf(persona.getFechaNacimiento()));
+            } else {
+                stmt.setNull(6, Types.DATE);
             }
+            if (persona.getObservacionesSalud() != null) {
+                stmt.setString(7, persona.getObservacionesSalud());
+            } else {
+                stmt.setNull(7, Types.VARCHAR);
+            }
+            stmt.setString(8, persona.getFuenteRegistro().name());
+            stmt.setBoolean(9, persona.getActivo());
+            stmt.setInt(10, persona.getId());
+
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new IllegalStateException("Error al actualizar persona: " + e.getMessage(), e);
         }
@@ -198,12 +187,9 @@ public class PersonaDAO implements IPersonaDAO {
     public boolean eliminar(Integer id) {
         String sql = "DELETE FROM persona WHERE id = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, id);
-                return stmt.executeUpdate() > 0;
-            }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new IllegalStateException("Error al eliminar persona: " + e.getMessage(), e);
         }

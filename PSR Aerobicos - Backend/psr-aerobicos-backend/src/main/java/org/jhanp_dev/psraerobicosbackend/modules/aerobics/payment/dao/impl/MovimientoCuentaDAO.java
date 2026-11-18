@@ -1,6 +1,5 @@
 package org.jhanp_dev.psraerobicosbackend.modules.aerobics.payment.dao.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.jhanp_dev.psraerobicosbackend.config.database.ConexionDB;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.payment.dao.interfaces.IMovimientoCuentaDAO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.payment.dto.request.MovimientoCuentaRequestDTO;
@@ -23,10 +22,15 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-@RequiredArgsConstructor
 public class MovimientoCuentaDAO implements IMovimientoCuentaDAO {
 
+    private final Connection conexion;
     private final MovimientoCuentaMapper movimientoCuentaMapper;
+
+    public MovimientoCuentaDAO(MovimientoCuentaMapper movimientoCuentaMapper) throws SQLException {
+        this.conexion = ConexionDB.getConexion();
+        this.movimientoCuentaMapper = movimientoCuentaMapper;
+    }
 
     private static final String BASE_SELECT = """
             SELECT id, persona_id, llegada_id, monto_recibido, monto_abonado,
@@ -39,14 +43,11 @@ public class MovimientoCuentaDAO implements IMovimientoCuentaDAO {
         String sql = BASE_SELECT + " ORDER BY fecha_hora DESC";
         List<MovimientoCuentaResponseDTO> movimientos = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    MovimientoCuenta entidad = mapearFila(rs);
-                    movimientos.add(movimientoCuentaMapper.aResponseDTO(entidad));
-                }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                MovimientoCuenta entidad = mapearFila(rs);
+                movimientos.add(movimientoCuentaMapper.aResponseDTO(entidad));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al listar movimientos de cuenta: " + e.getMessage(), e);
@@ -59,15 +60,12 @@ public class MovimientoCuentaDAO implements IMovimientoCuentaDAO {
         String sql = BASE_SELECT + " WHERE persona_id = ? ORDER BY fecha_hora DESC";
         List<MovimientoCuentaResponseDTO> movimientos = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, personaId);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    while (rs.next()) {
-                        MovimientoCuenta entidad = mapearFila(rs);
-                        movimientos.add(movimientoCuentaMapper.aResponseDTO(entidad));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, personaId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    MovimientoCuenta entidad = mapearFila(rs);
+                    movimientos.add(movimientoCuentaMapper.aResponseDTO(entidad));
                 }
             }
         } catch (SQLException e) {
@@ -80,15 +78,12 @@ public class MovimientoCuentaDAO implements IMovimientoCuentaDAO {
     public Optional<MovimientoCuentaResponseDTO> obtenerPorId(Integer id) {
         String sql = BASE_SELECT + " WHERE id = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, id);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        MovimientoCuenta entidad = mapearFila(rs);
-                        return Optional.of(movimientoCuentaMapper.aResponseDTO(entidad));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    MovimientoCuenta entidad = mapearFila(rs);
+                    return Optional.of(movimientoCuentaMapper.aResponseDTO(entidad));
                 }
             }
         } catch (SQLException e) {
@@ -110,32 +105,29 @@ public class MovimientoCuentaDAO implements IMovimientoCuentaDAO {
         TipoMovimiento tipo = movimiento.getTipoMovimiento() != null ? movimiento.getTipoMovimiento() : TipoMovimiento.ABONO;
         boolean vueltoEntregado = movimiento.getVueltoEntregado() != null ? movimiento.getVueltoEntregado() : true;
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                stmt.setInt(1, movimiento.getPersonaId());
-                if (movimiento.getLlegadaId() != null) {
-                    stmt.setInt(2, movimiento.getLlegadaId());
-                } else {
-                    stmt.setNull(2, Types.INTEGER);
-                }
-                stmt.setBigDecimal(3, movimiento.getMontoRecibido());
-                stmt.setBigDecimal(4, movimiento.getMontoAbonado());
-                stmt.setString(5, metodo.name());
-                stmt.setString(6, tipo.name());
-                stmt.setBoolean(7, vueltoEntregado);
-                stmt.setInt(8, movimiento.getUsuarioId());
-                if (movimiento.getNota() != null) {
-                    stmt.setString(9, movimiento.getNota());
-                } else {
-                    stmt.setNull(9, Types.VARCHAR);
-                }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, movimiento.getPersonaId());
+            if (movimiento.getLlegadaId() != null) {
+                stmt.setInt(2, movimiento.getLlegadaId());
+            } else {
+                stmt.setNull(2, Types.INTEGER);
+            }
+            stmt.setBigDecimal(3, movimiento.getMontoRecibido());
+            stmt.setBigDecimal(4, movimiento.getMontoAbonado());
+            stmt.setString(5, metodo.name());
+            stmt.setString(6, tipo.name());
+            stmt.setBoolean(7, vueltoEntregado);
+            stmt.setInt(8, movimiento.getUsuarioId());
+            if (movimiento.getNota() != null) {
+                stmt.setString(9, movimiento.getNota());
+            } else {
+                stmt.setNull(9, Types.VARCHAR);
+            }
 
-                stmt.executeUpdate();
-                try (ResultSet keys = stmt.getGeneratedKeys()) {
-                    if (keys.next()) {
-                        movimiento.setId(keys.getInt(1));
-                    }
+            stmt.executeUpdate();
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                if (keys.next()) {
+                    movimiento.setId(keys.getInt(1));
                 }
             }
         } catch (SQLException e) {
@@ -165,30 +157,27 @@ public class MovimientoCuentaDAO implements IMovimientoCuentaDAO {
                 WHERE id = ?
                 """;
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, movimiento.getPersonaId());
-                if (movimiento.getLlegadaId() != null) {
-                    stmt.setInt(2, movimiento.getLlegadaId());
-                } else {
-                    stmt.setNull(2, Types.INTEGER);
-                }
-                stmt.setBigDecimal(3, movimiento.getMontoRecibido());
-                stmt.setBigDecimal(4, movimiento.getMontoAbonado());
-                stmt.setString(5, movimiento.getMetodoPago().name());
-                stmt.setString(6, movimiento.getTipoMovimiento().name());
-                stmt.setBoolean(7, movimiento.getVueltoEntregado());
-                stmt.setInt(8, movimiento.getUsuarioId());
-                if (movimiento.getNota() != null) {
-                    stmt.setString(9, movimiento.getNota());
-                } else {
-                    stmt.setNull(9, Types.VARCHAR);
-                }
-                stmt.setInt(10, movimiento.getId());
-
-                return stmt.executeUpdate() > 0;
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, movimiento.getPersonaId());
+            if (movimiento.getLlegadaId() != null) {
+                stmt.setInt(2, movimiento.getLlegadaId());
+            } else {
+                stmt.setNull(2, Types.INTEGER);
             }
+            stmt.setBigDecimal(3, movimiento.getMontoRecibido());
+            stmt.setBigDecimal(4, movimiento.getMontoAbonado());
+            stmt.setString(5, movimiento.getMetodoPago().name());
+            stmt.setString(6, movimiento.getTipoMovimiento().name());
+            stmt.setBoolean(7, movimiento.getVueltoEntregado());
+            stmt.setInt(8, movimiento.getUsuarioId());
+            if (movimiento.getNota() != null) {
+                stmt.setString(9, movimiento.getNota());
+            } else {
+                stmt.setNull(9, Types.VARCHAR);
+            }
+            stmt.setInt(10, movimiento.getId());
+
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new IllegalStateException("Error al actualizar movimiento de cuenta: " + e.getMessage(), e);
         }
@@ -198,12 +187,9 @@ public class MovimientoCuentaDAO implements IMovimientoCuentaDAO {
     public boolean eliminar(Integer id) {
         String sql = "DELETE FROM movimiento_cuenta WHERE id = ?";
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, id);
-                return stmt.executeUpdate() > 0;
-            }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new IllegalStateException("Error al eliminar movimiento de cuenta: " + e.getMessage(), e);
         }

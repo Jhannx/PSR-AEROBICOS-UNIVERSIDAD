@@ -1,6 +1,5 @@
 package org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dao.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.jhanp_dev.psraerobicosbackend.config.database.ConexionDB;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dao.interfaces.IReporteDAO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.AlumnoDestacadoResponseDTO;
@@ -23,10 +22,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-@RequiredArgsConstructor
 public class ReporteDAO implements IReporteDAO {
 
+    private final Connection conexion;
     private final ReporteMapper reporteMapper;
+
+    public ReporteDAO(ReporteMapper reporteMapper) throws SQLException {
+        this.conexion = ConexionDB.getConexion();
+        this.reporteMapper = reporteMapper;
+    }
 
     @Override
     public List<MetodoPagoAltoRecaudoResponseDTO> obtenerMetodosPagoAltoRecaudo() {
@@ -48,13 +52,10 @@ public class ReporteDAO implements IReporteDAO {
                 """;
         List<MetodoPagoAltoRecaudoResponseDTO> lista = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    lista.add(reporteMapper.aMetodoPagoAltoRecaudoDTO(rs));
-                }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                lista.add(reporteMapper.aMetodoPagoAltoRecaudoDTO(rs));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al consultar metodos de pago de alto recaudo: " + e.getMessage(), e);
@@ -89,13 +90,10 @@ public class ReporteDAO implements IReporteDAO {
                 """;
         List<AlumnoDestacadoResponseDTO> lista = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    lista.add(reporteMapper.aAlumnoDestacadoDTO(rs));
-                }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                lista.add(reporteMapper.aAlumnoDestacadoDTO(rs));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al consultar alumnos destacados: " + e.getMessage(), e);
@@ -134,13 +132,10 @@ public class ReporteDAO implements IReporteDAO {
                 """;
         List<SesionDestacadaPorDiaResponseDTO> lista = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    lista.add(reporteMapper.aSesionDestacadaPorDiaDTO(rs));
-                }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                lista.add(reporteMapper.aSesionDestacadaPorDiaDTO(rs));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al consultar sesiones destacadas por dia: " + e.getMessage(), e);
@@ -175,13 +170,10 @@ public class ReporteDAO implements IReporteDAO {
                 """;
         List<TurnoSinCancelacionResponseDTO> lista = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    lista.add(reporteMapper.aTurnoSinCancelacionDTO(rs));
-                }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                lista.add(reporteMapper.aTurnoSinCancelacionDTO(rs));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al consultar turnos sin cancelaciones: " + e.getMessage(), e);
@@ -206,14 +198,11 @@ public class ReporteDAO implements IReporteDAO {
                 """;
         List<AuditoriaMetodoPagoResponseDTO> lista = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, minOperaciones);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    while (rs.next()) {
-                        lista.add(reporteMapper.aAuditoriaMetodoPagoDTO(rs));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, minOperaciones);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(reporteMapper.aAuditoriaMetodoPagoDTO(rs));
                 }
             }
         } catch (SQLException e) {
@@ -243,13 +232,10 @@ public class ReporteDAO implements IReporteDAO {
                 """;
         List<PagoAnticipadoResponseDTO> lista = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    lista.add(reporteMapper.aPagoAnticipadoDTO(rs));
-                }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                lista.add(reporteMapper.aPagoAnticipadoDTO(rs));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al consultar pagos anticipados: " + e.getMessage(), e);
@@ -273,13 +259,10 @@ public class ReporteDAO implements IReporteDAO {
                 """;
         List<MetodoPagoMasUtilizadoResponseDTO> lista = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    lista.add(reporteMapper.aMetodoPagoMasUtilizadoDTO(rs));
-                }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                lista.add(reporteMapper.aMetodoPagoMasUtilizadoDTO(rs));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al consultar metodos de pago mas utilizados: " + e.getMessage(), e);
@@ -307,14 +290,11 @@ public class ReporteDAO implements IReporteDAO {
                 """;
         List<EstadoCuentaParticipanteResponseDTO> lista = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, numeroDocumento);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    while (rs.next()) {
-                        lista.add(reporteMapper.aEstadoCuentaParticipanteDTO(rs));
-                    }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setString(1, numeroDocumento);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(reporteMapper.aEstadoCuentaParticipanteDTO(rs));
                 }
             }
         } catch (SQLException e) {
@@ -337,13 +317,10 @@ public class ReporteDAO implements IReporteDAO {
                 """;
         List<RecaudoDiarioResponseDTO> lista = new ArrayList<>();
 
-        try {
-            Connection conn = ConexionDB.getInstance().getConnection();
-            try (PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    lista.add(reporteMapper.aRecaudoDiarioDTO(rs));
-                }
+        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                lista.add(reporteMapper.aRecaudoDiarioDTO(rs));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al consultar recaudo diario: " + e.getMessage(), e);
@@ -351,4 +328,3 @@ public class ReporteDAO implements IReporteDAO {
         return lista;
     }
 }
-
