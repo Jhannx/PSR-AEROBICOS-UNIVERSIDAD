@@ -15,12 +15,9 @@ public class SesionMapper {
         return Sesion.builder()
                 .horarioId(dto.getHorarioId())
                 .fecha(dto.getFecha())
-                .horaInicio(dto.getHoraInicio())
-                .horaFin(dto.getHoraFin())
+                .horaInicio(dto.getFecha() != null && dto.getHoraInicio() != null ? java.time.LocalDateTime.of(dto.getFecha(), dto.getHoraInicio()) : null)
+                .horaFin(dto.getFecha() != null && dto.getHoraFin() != null ? java.time.LocalDateTime.of(dto.getFecha(), dto.getHoraFin()) : null)
                 .profesorUsuarioId(dto.getProfesorUsuarioId())
-                .cancelada(dto.getCancelada())
-                .totalAsistencias(dto.getTotalAsistencias())
-                .totalRecaudo(dto.getTotalRecaudo())
                 .build();
     }
 
@@ -39,6 +36,12 @@ public class SesionMapper {
                 .totalAsistencias(entidad.getTotalAsistencias())
                 .totalRecaudo(entidad.getTotalRecaudo())
                 .build();
+    }
+
+    public SesionResponseDTO aResponseDTO(Sesion entidad, String instructor) {
+        SesionResponseDTO dto = aResponseDTO(entidad);
+        if (dto != null) dto.setInstructor(instructor);
+        return dto;
     }
 }
 

@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Data
 @Builder
@@ -16,11 +16,8 @@ import java.time.LocalDateTime;
 public class SesionRequestDTO {
     private Integer horarioId;
     private LocalDate fecha;
-    private LocalDateTime horaInicio;
-    private LocalDateTime horaFin;
+    private LocalTime horaInicio;
+    private LocalTime horaFin;
     private Integer profesorUsuarioId;
-    private Boolean cancelada;
-    private Integer totalAsistencias;
-    private BigDecimal totalRecaudo;
 }
 

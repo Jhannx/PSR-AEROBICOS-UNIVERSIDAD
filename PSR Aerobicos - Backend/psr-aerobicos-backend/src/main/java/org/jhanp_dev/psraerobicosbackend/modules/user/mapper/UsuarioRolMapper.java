@@ -13,9 +13,21 @@ public class UsuarioRolMapper {
             return null;
         }
         return UsuarioRol.builder()
-                .usuarioId(dto.getUsuarioId())
-                .rolId(dto.getRolId())
                 .build();
+    }
+
+    public UsuarioRol aEntidad(UsuarioRolRequestDTO dto, Integer usuarioId, Integer rolId) {
+        UsuarioRol usuarioRol = aEntidad(dto);
+        if (usuarioRol != null) {
+            usuarioRol.setUsuarioId(usuarioId);
+            usuarioRol.setRolId(rolId);
+        }
+        return usuarioRol;
+    }
+
+    public String obtenerNombreRol(UsuarioRolRequestDTO dto) {
+        if (dto == null) return null;
+        return dto.getRolNombre() != null ? dto.getRolNombre() : dto.getRoleName();
     }
 
     public UsuarioRolResponseDTO aResponseDTO(UsuarioRol entidad) {

@@ -9,6 +9,7 @@ import org.jhanp_dev.psraerobicosbackend.modules.user.mapper.UsuarioRolMapper;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -106,6 +107,29 @@ public class UsuarioRolDAO implements IUsuarioRolDAO {
             throw new IllegalStateException("Error al guardar usuario_rol: " + e.getMessage(), e);
         }
         return usuarioRolMapper.aResponseDTO(usuarioRol);
+    }
+
+    @Override
+    public void asignar(Integer usuarioId, String rolNombre) {
+        try (CallableStatement stmt = conexion.prepareCall("{CALL sp_asignar_rol(?, ?)}")) {
+            stmt.setInt(1, usuarioId);
+            stmt.setString(2, rolNombre);
+            stmt.execute();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al asignar rol: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public boolean retirar(Integer usuarioId, String rolNombre) {
+        String sql = "DELETE ur FROM usuario_rol ur JOIN rol r ON r.id = ur.rol_id WHERE ur.usuario_id = ? AND r.nombre = ?";
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, usuarioId);
+            stmt.setString(2, rolNombre);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al retirar rol: " + e.getMessage(), e);
+        }
     }
 
     @Override

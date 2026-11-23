@@ -39,5 +39,11 @@ public class HistorialAuditoriaMapper {
                 .fechaHora(entidad.getFechaHora())
                 .build();
     }
+
+    public HistorialAuditoriaResponseDTO aResponseDTO(HistorialAuditoria entidad, String usuarioResponsable) {
+        HistorialAuditoriaResponseDTO dto = aResponseDTO(entidad);
+        if (dto != null) dto.setUsuarioResponsable(usuarioResponsable);
+        return dto;
+    }
 }
 

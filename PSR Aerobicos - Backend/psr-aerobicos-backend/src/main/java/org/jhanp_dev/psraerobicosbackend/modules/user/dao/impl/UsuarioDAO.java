@@ -9,10 +9,10 @@ import org.jhanp_dev.psraerobicosbackend.modules.user.mapper.UsuarioMapper;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
@@ -31,20 +31,24 @@ public class UsuarioDAO implements IUsuarioDAO {
     }
 
     private static final String BASE_SELECT = """
-            SELECT id, numero_documento, correo, password_hash, persona_id, activo, fecha_creacion
-            FROM usuario
+            SELECT u.id, u.numero_documento, u.correo, u.password_hash, u.persona_id, u.activo, u.fecha_creacion,
+                   CONCAT(p.nombre, ' ', p.apellidos) AS nombre_completo,
+                   (SELECT GROUP_CONCAT(r.nombre ORDER BY r.nombre SEPARATOR ',')
+                    FROM usuario_rol ur JOIN rol r ON r.id = ur.rol_id WHERE ur.usuario_id = u.id) AS roles
+            FROM usuario u
+            LEFT JOIN persona p ON p.id = u.persona_id
             """;
 
     @Override
     public List<UsuarioResponseDTO> listarTodos() {
-        String sql = BASE_SELECT + " ORDER BY id ASC";
+        String sql = BASE_SELECT + " ORDER BY u.id ASC";
         List<UsuarioResponseDTO> usuarios = new ArrayList<>();
 
         try (PreparedStatement stmt = conexion.prepareStatement(sql);
                 ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 Usuario entidad = mapearFila(rs);
-                usuarios.add(usuarioMapper.aResponseDTO(entidad));
+                usuarios.add(mapearResponse(rs, entidad));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al listar usuarios: " + e.getMessage(), e);
@@ -53,15 +57,47 @@ public class UsuarioDAO implements IUsuarioDAO {
     }
 
     @Override
+    public List<UsuarioResponseDTO> buscar(String termino) {
+        String sql = BASE_SELECT + " WHERE p.nombre LIKE ? OR p.apellidos LIKE ? OR u.numero_documento LIKE ? OR u.correo LIKE ? ORDER BY u.id";
+        String patron = "%" + termino + "%";
+        List<UsuarioResponseDTO> lista = new ArrayList<>();
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            for (int i = 1; i <= 4; i++) stmt.setString(i, patron);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) lista.add(mapearResponse(rs, mapearFila(rs)));
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al buscar usuarios: " + e.getMessage(), e);
+        }
+        return lista;
+    }
+
+    @Override
+    public UsuarioResponseDTO crearCuenta(Integer personaId, String passwordHash, String correo) {
+        String llamada = "{CALL sp_registrar_usuario_para_persona(?, ?, ?, ?)}";
+        try (CallableStatement stmt = conexion.prepareCall(llamada)) {
+            stmt.setInt(1, personaId);
+            stmt.setString(2, passwordHash);
+            stmt.setString(3, correo);
+            stmt.registerOutParameter(4, Types.INTEGER);
+            stmt.execute();
+            int id = stmt.getInt(4);
+            return obtenerPorId(id).orElseThrow(() -> new IllegalStateException("No se encontró la cuenta creada"));
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al crear la cuenta: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
     public Optional<UsuarioResponseDTO> obtenerPorId(Integer id) {
-        String sql = BASE_SELECT + " WHERE id = ?";
+        String sql = BASE_SELECT + " WHERE u.id = ?";
 
         try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     Usuario entidad = mapearFila(rs);
-                    return Optional.of(usuarioMapper.aResponseDTO(entidad));
+                    return Optional.of(mapearResponse(rs, entidad));
                 }
             }
         } catch (SQLException e) {
@@ -72,14 +108,14 @@ public class UsuarioDAO implements IUsuarioDAO {
 
     @Override
     public Optional<UsuarioResponseDTO> obtenerPorCorreo(String correo) {
-        String sql = BASE_SELECT + " WHERE correo = ?";
+        String sql = BASE_SELECT + " WHERE u.correo = ?";
 
         try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setString(1, correo);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     Usuario entidad = mapearFila(rs);
-                    return Optional.of(usuarioMapper.aResponseDTO(entidad));
+                    return Optional.of(mapearResponse(rs, entidad));
                 }
             }
         } catch (SQLException e) {
@@ -90,58 +126,20 @@ public class UsuarioDAO implements IUsuarioDAO {
 
     @Override
     public Optional<UsuarioResponseDTO> obtenerPorNumeroDocumento(String numeroDocumento) {
-        String sql = BASE_SELECT + " WHERE numero_documento = ?";
+        String sql = BASE_SELECT + " WHERE u.numero_documento = ?";
 
         try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setString(1, numeroDocumento);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     Usuario entidad = mapearFila(rs);
-                    return Optional.of(usuarioMapper.aResponseDTO(entidad));
+                    return Optional.of(mapearResponse(rs, entidad));
                 }
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al obtener usuario por documento: " + e.getMessage(), e);
         }
         return Optional.empty();
-    }
-
-    @Override
-    public UsuarioResponseDTO guardar(UsuarioRequestDTO dto) {
-        Usuario usuario = usuarioMapper.aEntidad(dto);
-        String sql = "INSERT INTO usuario (numero_documento, correo, password_hash, persona_id, activo) VALUES (?, ?, ?, ?, ?)";
-        boolean activo = usuario.getActivo() != null ? usuario.getActivo() : true;
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            if (usuario.getNumeroDocumento() != null) {
-                stmt.setString(1, usuario.getNumeroDocumento());
-            } else {
-                stmt.setNull(1, Types.VARCHAR);
-            }
-            if (usuario.getCorreo() != null) {
-                stmt.setString(2, usuario.getCorreo());
-            } else {
-                stmt.setNull(2, Types.VARCHAR);
-            }
-            stmt.setString(3, usuario.getPasswordHash());
-            if (usuario.getPersonaId() != null) {
-                stmt.setInt(4, usuario.getPersonaId());
-            } else {
-                stmt.setNull(4, Types.INTEGER);
-            }
-            stmt.setBoolean(5, activo);
-
-            stmt.executeUpdate();
-            try (ResultSet keys = stmt.getGeneratedKeys()) {
-                if (keys.next()) {
-                    usuario.setId(keys.getInt(1));
-                }
-            }
-        } catch (SQLException e) {
-            throw new IllegalStateException("Error al guardar usuario: " + e.getMessage(), e);
-        }
-        usuario.setActivo(activo);
-        return usuarioMapper.aResponseDTO(usuario);
     }
 
     @Override
@@ -152,7 +150,6 @@ public class UsuarioDAO implements IUsuarioDAO {
                 UPDATE usuario
                 SET numero_documento = ?,
                     correo = ?,
-                    password_hash = ?,
                     persona_id = ?,
                     activo = ?
                 WHERE id = ?
@@ -169,14 +166,13 @@ public class UsuarioDAO implements IUsuarioDAO {
             } else {
                 stmt.setNull(2, Types.VARCHAR);
             }
-            stmt.setString(3, usuario.getPasswordHash());
             if (usuario.getPersonaId() != null) {
-                stmt.setInt(4, usuario.getPersonaId());
+                stmt.setInt(3, usuario.getPersonaId());
             } else {
-                stmt.setNull(4, Types.INTEGER);
+                stmt.setNull(3, Types.INTEGER);
             }
-            stmt.setBoolean(5, usuario.getActivo());
-            stmt.setInt(6, usuario.getId());
+            stmt.setBoolean(4, usuario.getActivo() != null ? usuario.getActivo() : true);
+            stmt.setInt(5, usuario.getId());
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -210,5 +206,13 @@ public class UsuarioDAO implements IUsuarioDAO {
                 .activo(rs.getBoolean("activo"))
                 .fechaCreacion(fechaCreacion != null ? fechaCreacion.toLocalDateTime() : null)
                 .build();
+    }
+
+    private UsuarioResponseDTO mapearResponse(ResultSet rs, Usuario usuario) throws SQLException {
+        String rolesCsv = rs.getString("roles");
+        List<String> roles = rolesCsv == null || rolesCsv.isBlank()
+                ? List.of()
+                : java.util.Arrays.asList(rolesCsv.split(","));
+        return usuarioMapper.aResponseDTO(usuario, rs.getString("nombre_completo"), roles);
     }
 }

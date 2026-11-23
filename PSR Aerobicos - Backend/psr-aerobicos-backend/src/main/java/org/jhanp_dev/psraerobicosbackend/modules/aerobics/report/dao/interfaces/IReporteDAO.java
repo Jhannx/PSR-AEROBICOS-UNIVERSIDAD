@@ -11,6 +11,9 @@ import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.Se
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.TurnoSinCancelacionResponseDTO;
 
 import java.util.List;
+import java.time.LocalDate;
+import org.jhanp_dev.psraerobicosbackend.modules.person.dto.response.SaldoPersonaResponseDTO;
+import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.AsistenciaPorFechaResponseDTO;
 
 public interface IReporteDAO {
     List<MetodoPagoAltoRecaudoResponseDTO> obtenerMetodosPagoAltoRecaudo();
@@ -22,5 +25,7 @@ public interface IReporteDAO {
     List<MetodoPagoMasUtilizadoResponseDTO> obtenerMetodosPagoMasUtilizados();
     List<EstadoCuentaParticipanteResponseDTO> obtenerEstadoCuentaPorDocumento(String numeroDocumento);
     List<RecaudoDiarioResponseDTO> obtenerRecaudoDiario();
+    List<SaldoPersonaResponseDTO> obtenerSaldosPersonas();
+    List<AsistenciaPorFechaResponseDTO> obtenerAsistenciasPorFecha(LocalDate fecha);
 }
 

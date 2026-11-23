@@ -57,8 +57,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if (displayVigente) {
           displayVigente.textContent = ValidacionesPSR.formatearCOP(tarifa.monto);
         }
-        if (displayFecha && tarifa.fechaActualizacion) {
-          displayFecha.textContent = ValidacionesPSR.formatearFecha(tarifa.fechaActualizacion);
+        const fechaAct = tarifa.actualizadoEn || tarifa.fechaActualizacion;
+        if (displayFecha && fechaAct) {
+          displayFecha.textContent = ValidacionesPSR.formatearFecha(fechaAct);
         }
       }
     } catch (e) {

@@ -13,5 +13,5 @@ public interface ISesionDAO {
     Optional<SesionResponseDTO> obtenerPorId(Integer id);
     SesionResponseDTO guardar(SesionRequestDTO dto);
     boolean actualizar(Integer id, SesionRequestDTO dto);
-    boolean eliminar(Integer id);
+    boolean cancelar(Integer id, Integer usuarioId);
 }

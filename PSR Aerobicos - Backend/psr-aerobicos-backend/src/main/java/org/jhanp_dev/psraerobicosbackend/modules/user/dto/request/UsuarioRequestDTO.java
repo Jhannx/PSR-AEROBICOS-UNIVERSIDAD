@@ -10,10 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UsuarioRequestDTO {
-    private String numeroDocumento;
+    private String identificador;
+    private String documento;
+    private String password;
     private String correo;
-    private String passwordHash;
     private Integer personaId;
-    private Boolean activo;
 }
 

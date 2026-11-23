@@ -11,6 +11,8 @@ public interface IUsuarioRolDAO {
     Optional<UsuarioRolResponseDTO> obtenerPorId(Integer id);
     List<UsuarioRolResponseDTO> listarPorUsuarioId(Integer usuarioId);
     UsuarioRolResponseDTO guardar(UsuarioRolRequestDTO dto);
+    void asignar(Integer usuarioId, String rolNombre);
+    boolean retirar(Integer usuarioId, String rolNombre);
     boolean actualizar(Integer id, UsuarioRolRequestDTO dto);
     boolean eliminar(Integer id);
 }

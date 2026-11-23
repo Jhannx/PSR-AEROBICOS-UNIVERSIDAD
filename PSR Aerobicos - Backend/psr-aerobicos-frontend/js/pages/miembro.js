@@ -25,8 +25,10 @@ document.addEventListener("DOMContentLoaded", function () {
           metodoCheckin: "QR"
         });
 
-        if (posicionTurno && respuesta && respuesta.posicion) {
-          posicionTurno.textContent = "#" + respuesta.posicion;
+        const turnoRecibido =
+          respuesta && (respuesta.posicionTurno || respuesta.turno || respuesta.posicion);
+        if (posicionTurno && turnoRecibido) {
+          posicionTurno.textContent = "#" + turnoRecibido;
         }
       } catch (error) {
         if (!error.sinConexion) {

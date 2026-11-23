@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.CallableStatement;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -34,21 +35,24 @@ public class SesionDAO implements ISesionDAO {
     }
 
     private static final String BASE_SELECT = """
-            SELECT id, horario_id, fecha, hora_inicio, hora_fin,
-                   profesor_usuario_id, cancelada, total_asistencias, total_recaudo
-            FROM sesion
+            SELECT s.id, s.horario_id, s.fecha, s.hora_inicio, s.hora_fin,
+                   s.profesor_usuario_id, s.cancelada, s.total_asistencias, s.total_recaudo,
+                   CONCAT(p.nombre, ' ', p.apellidos) AS instructor
+            FROM sesion s
+            LEFT JOIN usuario u ON u.id = s.profesor_usuario_id
+            LEFT JOIN persona p ON p.id = u.persona_id
             """;
 
     @Override
     public List<SesionResponseDTO> listarTodos() {
-        String sql = BASE_SELECT + " ORDER BY fecha DESC, hora_inicio DESC";
+        String sql = BASE_SELECT + " ORDER BY s.fecha DESC, s.hora_inicio DESC";
         List<SesionResponseDTO> sesiones = new ArrayList<>();
 
         try (PreparedStatement stmt = conexion.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 Sesion entidad = mapearFila(rs);
-                sesiones.add(sesionMapper.aResponseDTO(entidad));
+                sesiones.add(sesionMapper.aResponseDTO(entidad, rs.getString("instructor")));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al listar sesiones: " + e.getMessage(), e);
@@ -58,7 +62,7 @@ public class SesionDAO implements ISesionDAO {
 
     @Override
     public List<SesionResponseDTO> listarPorFecha(LocalDate fecha) {
-        String sql = BASE_SELECT + " WHERE fecha = ? ORDER BY hora_inicio ASC";
+        String sql = BASE_SELECT + " WHERE s.fecha = ? ORDER BY s.hora_inicio ASC";
         List<SesionResponseDTO> sesiones = new ArrayList<>();
 
         try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
@@ -66,7 +70,7 @@ public class SesionDAO implements ISesionDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     Sesion entidad = mapearFila(rs);
-                    sesiones.add(sesionMapper.aResponseDTO(entidad));
+                    sesiones.add(sesionMapper.aResponseDTO(entidad, rs.getString("instructor")));
                 }
             }
         } catch (SQLException e) {
@@ -77,14 +81,14 @@ public class SesionDAO implements ISesionDAO {
 
     @Override
     public Optional<SesionResponseDTO> obtenerPorId(Integer id) {
-        String sql = BASE_SELECT + " WHERE id = ?";
+        String sql = BASE_SELECT + " WHERE s.id = ?";
 
         try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     Sesion entidad = mapearFila(rs);
-                    return Optional.of(sesionMapper.aResponseDTO(entidad));
+                    return Optional.of(sesionMapper.aResponseDTO(entidad, rs.getString("instructor")));
                 }
             }
         } catch (SQLException e) {
@@ -96,17 +100,8 @@ public class SesionDAO implements ISesionDAO {
     @Override
     public SesionResponseDTO guardar(SesionRequestDTO dto) {
         Sesion sesion = sesionMapper.aEntidad(dto);
-        String sql = """
-                INSERT INTO sesion (
-                    horario_id, fecha, hora_inicio, hora_fin,
-                    profesor_usuario_id, cancelada, total_asistencias, total_recaudo
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """;
-        boolean cancelada = sesion.getCancelada() != null ? sesion.getCancelada() : false;
-        int totalAsistencias = sesion.getTotalAsistencias() != null ? sesion.getTotalAsistencias() : 0;
-        BigDecimal totalRecaudo = sesion.getTotalRecaudo() != null ? sesion.getTotalRecaudo() : BigDecimal.ZERO;
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        String sql = "{CALL sp_crear_sesion_manual(?, ?, ?, ?, ?, ?)}";
+        try (CallableStatement stmt = conexion.prepareCall(sql)) {
             if (sesion.getHorarioId() != null) {
                 stmt.setInt(1, sesion.getHorarioId());
             } else {
@@ -124,23 +119,13 @@ public class SesionDAO implements ISesionDAO {
             } else {
                 stmt.setNull(5, Types.INTEGER);
             }
-            stmt.setBoolean(6, cancelada);
-            stmt.setInt(7, totalAsistencias);
-            stmt.setBigDecimal(8, totalRecaudo);
-
-            stmt.executeUpdate();
-            try (ResultSet keys = stmt.getGeneratedKeys()) {
-                if (keys.next()) {
-                    sesion.setId(keys.getInt(1));
-                }
-            }
+            stmt.registerOutParameter(6, Types.INTEGER);
+            stmt.execute();
+            sesion.setId(stmt.getInt(6));
         } catch (SQLException e) {
             throw new IllegalStateException("Error al guardar sesion: " + e.getMessage(), e);
         }
-        sesion.setCancelada(cancelada);
-        sesion.setTotalAsistencias(totalAsistencias);
-        sesion.setTotalRecaudo(totalRecaudo);
-        return sesionMapper.aResponseDTO(sesion);
+        return obtenerPorId(sesion.getId()).orElseThrow(() -> new IllegalStateException("No se encontró la sesión creada"));
     }
 
     @Override
@@ -190,12 +175,13 @@ public class SesionDAO implements ISesionDAO {
     }
 
     @Override
-    public boolean eliminar(Integer id) {
-        String sql = "DELETE FROM sesion WHERE id = ?";
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+    public boolean cancelar(Integer id, Integer usuarioId) {
+        String sql = "{CALL sp_cancelar_sesion(?, ?)}";
+        try (CallableStatement stmt = conexion.prepareCall(sql)) {
             stmt.setInt(1, id);
-            return stmt.executeUpdate() > 0;
+            stmt.setInt(2, usuarioId);
+            stmt.execute();
+            return true;
         } catch (SQLException e) {
             throw new IllegalStateException("Error al eliminar sesion: " + e.getMessage(), e);
         }

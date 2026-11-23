@@ -12,8 +12,6 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AsistenciaRequestDTO {
-    private Integer llegadaId;
-    private BigDecimal montoCobrado;
-    private Integer marcadoPor;
+    private Integer usuarioId;
 }
 

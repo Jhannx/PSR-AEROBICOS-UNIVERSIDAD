@@ -21,6 +21,7 @@ public class HistorialAuditoriaResponseDTO {
     private String valorNuevo;
     private AccionAuditoria accion;
     private Integer usuarioId;
+    private String usuarioResponsable;
     private LocalDateTime fechaHora;
 }
 

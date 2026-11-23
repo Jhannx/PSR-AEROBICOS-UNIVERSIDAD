@@ -15,11 +15,14 @@ import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.mapper.ReporteM
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
+import java.sql.CallableStatement;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDate;
 
 @Repository
 public class ReporteDAO implements IReporteDAO {
@@ -324,6 +327,44 @@ public class ReporteDAO implements IReporteDAO {
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al consultar recaudo diario: " + e.getMessage(), e);
+        }
+        return lista;
+    }
+
+    @Override
+    public List<org.jhanp_dev.psraerobicosbackend.modules.person.dto.response.SaldoPersonaResponseDTO> obtenerSaldosPersonas() {
+        String sql = "SELECT persona_id, numero_documento, nombre_completo, total_abonado, total_cobrado, saldo, estado_cuenta FROM vista_saldo_persona ORDER BY nombre_completo";
+        List<org.jhanp_dev.psraerobicosbackend.modules.person.dto.response.SaldoPersonaResponseDTO> lista = new ArrayList<>();
+        try (PreparedStatement stmt = conexion.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) lista.add(org.jhanp_dev.psraerobicosbackend.modules.person.dto.response.SaldoPersonaResponseDTO.builder()
+                    .personaId(rs.getInt("persona_id"))
+                    .numeroDocumento(rs.getString("numero_documento"))
+                    .nombreCompleto(rs.getString("nombre_completo"))
+                    .totalAbonado(rs.getBigDecimal("total_abonado"))
+                    .totalCobrado(rs.getBigDecimal("total_cobrado"))
+                    .saldo(rs.getBigDecimal("saldo"))
+                    .estadoCuenta(rs.getString("estado_cuenta"))
+                    .build());
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al consultar saldos de personas: " + e.getMessage(), e);
+        }
+        return lista;
+    }
+
+    @Override
+    public List<org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.AsistenciaPorFechaResponseDTO> obtenerAsistenciasPorFecha(LocalDate fecha) {
+        List<org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.AsistenciaPorFechaResponseDTO> lista = new ArrayList<>();
+        try (CallableStatement stmt = conexion.prepareCall("{CALL sp_reporte_asistencias_por_fecha(?)}")) {
+            stmt.setDate(1, Date.valueOf(fecha));
+            boolean tieneResultados = stmt.execute();
+            while (tieneResultados) {
+                try (ResultSet rs = stmt.getResultSet()) {
+                    while (rs.next()) lista.add(reporteMapper.aAsistenciaPorFechaDTO(rs));
+                }
+                tieneResultados = stmt.getMoreResults();
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al consultar asistencias por fecha: " + e.getMessage(), e);
         }
         return lista;
     }

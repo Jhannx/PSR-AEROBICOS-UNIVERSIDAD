@@ -12,5 +12,6 @@ public interface ITarifaDAO {
     Optional<TarifaResponseDTO> obtenerTarifaActual();
     TarifaResponseDTO guardar(TarifaRequestDTO dto);
     boolean actualizar(Integer id, TarifaRequestDTO dto);
+    TarifaResponseDTO actualizarVigente(TarifaRequestDTO dto);
     boolean eliminar(Integer id);
 }

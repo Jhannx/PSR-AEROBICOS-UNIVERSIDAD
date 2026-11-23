@@ -14,9 +14,22 @@ public class LlegadaMapper {
         }
         return Llegada.builder()
                 .personaId(dto.getPersonaId())
-                .sesionId(dto.getSesionId())
                 .metodoCheckin(dto.getMetodoCheckin())
                 .build();
+    }
+
+    public Llegada aEntidad(LlegadaRequestDTO dto, Integer sesionId, Integer personaId) {
+        Llegada llegada = aEntidad(dto);
+        if (llegada != null) {
+            llegada.setSesionId(sesionId);
+            llegada.setPersonaId(personaId != null ? personaId : llegada.getPersonaId());
+        }
+        return llegada;
+    }
+
+    public String obtenerDocumento(LlegadaRequestDTO dto) {
+        if (dto == null) return null;
+        return dto.getDocumento() != null ? dto.getDocumento() : dto.getDocumentNumber();
     }
 
     public LlegadaResponseDTO aResponseDTO(Llegada entidad) {

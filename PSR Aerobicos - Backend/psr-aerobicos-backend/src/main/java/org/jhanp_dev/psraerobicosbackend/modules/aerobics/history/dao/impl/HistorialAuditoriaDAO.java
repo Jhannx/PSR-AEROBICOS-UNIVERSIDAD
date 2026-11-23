@@ -32,21 +32,23 @@ public class HistorialAuditoriaDAO implements IHistorialAuditoriaDAO {
     }
 
     private static final String BASE_SELECT = """
-            SELECT id, tabla_afectada, registro_id, campo, valor_anterior,
-                   valor_nuevo, accion, usuario_id, fecha_hora
-            FROM historial_auditoria
+            SELECT v.auditoria_id AS id, v.tabla_afectada, v.registro_id, v.campo,
+                   v.valor_anterior, v.valor_nuevo, v.accion, h.usuario_id,
+                   v.usuario_responsable, v.fecha_hora
+            FROM vista_historial_cambios v
+            JOIN historial_auditoria h ON h.id = v.auditoria_id
             """;
 
     @Override
     public List<HistorialAuditoriaResponseDTO> listarTodos() {
-        String sql = BASE_SELECT + " ORDER BY fecha_hora DESC";
+        String sql = BASE_SELECT + " ORDER BY v.fecha_hora DESC";
         List<HistorialAuditoriaResponseDTO> registros = new ArrayList<>();
 
         try (PreparedStatement stmt = conexion.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 HistorialAuditoria entidad = mapearFila(rs);
-                registros.add(historialAuditoriaMapper.aResponseDTO(entidad));
+                registros.add(historialAuditoriaMapper.aResponseDTO(entidad, rs.getString("usuario_responsable")));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al listar historial de auditoria: " + e.getMessage(), e);
@@ -56,7 +58,7 @@ public class HistorialAuditoriaDAO implements IHistorialAuditoriaDAO {
 
     @Override
     public List<HistorialAuditoriaResponseDTO> listarPorTablaAfectada(String tablaAfectada) {
-        String sql = BASE_SELECT + " WHERE tabla_afectada = ? ORDER BY fecha_hora DESC";
+        String sql = BASE_SELECT + " WHERE v.tabla_afectada = ? ORDER BY v.fecha_hora DESC";
         List<HistorialAuditoriaResponseDTO> registros = new ArrayList<>();
 
         try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
@@ -64,7 +66,7 @@ public class HistorialAuditoriaDAO implements IHistorialAuditoriaDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     HistorialAuditoria entidad = mapearFila(rs);
-                    registros.add(historialAuditoriaMapper.aResponseDTO(entidad));
+                    registros.add(historialAuditoriaMapper.aResponseDTO(entidad, rs.getString("usuario_responsable")));
                 }
             }
         } catch (SQLException e) {
@@ -75,14 +77,14 @@ public class HistorialAuditoriaDAO implements IHistorialAuditoriaDAO {
 
     @Override
     public Optional<HistorialAuditoriaResponseDTO> obtenerPorId(Integer id) {
-        String sql = BASE_SELECT + " WHERE id = ?";
+        String sql = BASE_SELECT + " WHERE v.auditoria_id = ?";
 
         try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     HistorialAuditoria entidad = mapearFila(rs);
-                    return Optional.of(historialAuditoriaMapper.aResponseDTO(entidad));
+                    return Optional.of(historialAuditoriaMapper.aResponseDTO(entidad, rs.getString("usuario_responsable")));
                 }
             }
         } catch (SQLException e) {

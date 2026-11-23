@@ -47,12 +47,17 @@ document.addEventListener("DOMContentLoaded", function () {
           const tabla = reg.tablaAfectada || "movimiento_cuenta";
           const accion = reg.accion || "UPDATE";
           const badgeColor = accion === "DELETE" ? "badge-rose" : tabla === "tarifa" ? "badge-purple" : "badge-amber";
+          const campo = reg.campo || reg.campoModificado || "";
+          const responsable =
+            reg.usuarioResponsable ||
+            reg.realizadoPor ||
+            (reg.usuarioId ? "Usuario #" + reg.usuarioId : "Sistema");
 
           return (
             '<article class="audit-row" data-table="' + tabla + '">' +
               '<div class="d-flex align-items-center gap-2">' +
                 '<span class="psr-badge ' + badgeColor + '">' + accion + ' · ' + tabla + '</span>' +
-                '<span class="text-secondary small">Registro #' + (reg.registroId || 1) + ' · ' + (reg.campoModificado || "") + '</span>' +
+                '<span class="text-secondary small">Registro #' + (reg.registroId || reg.id || 1) + (campo ? ' · ' + campo : '') + '</span>' +
               '</div>' +
               '<div class="audit-diff">' +
                 '<span class="audit-old-val">' + (reg.valorAnterior || "—") + '</span>' +
@@ -60,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 '<span class="audit-new-val">' + (reg.valorNuevo || "—") + '</span>' +
               '</div>' +
               '<div class="text-end">' +
-                '<span class="text-white fw-semibold small">' + (reg.realizadoPor || "Sistema") + '</span>' +
+                '<span class="text-white fw-semibold small">' + responsable + '</span>' +
                 '<span class="text-secondary small ms-2">' + ValidacionesPSR.formatearFechaHora(reg.fechaHora) + '</span>' +
               '</div>' +
             '</article>'

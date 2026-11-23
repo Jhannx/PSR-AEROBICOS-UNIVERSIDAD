@@ -9,6 +9,7 @@ import java.util.Optional;
 public interface IMovimientoCuentaDAO {
     List<MovimientoCuentaResponseDTO> listarTodos();
     List<MovimientoCuentaResponseDTO> listarPorPersonaId(Integer personaId);
+    List<MovimientoCuentaResponseDTO> listarPorLlegadaId(Integer llegadaId);
     Optional<MovimientoCuentaResponseDTO> obtenerPorId(Integer id);
     MovimientoCuentaResponseDTO guardar(MovimientoCuentaRequestDTO dto);
     boolean actualizar(Integer id, MovimientoCuentaRequestDTO dto);

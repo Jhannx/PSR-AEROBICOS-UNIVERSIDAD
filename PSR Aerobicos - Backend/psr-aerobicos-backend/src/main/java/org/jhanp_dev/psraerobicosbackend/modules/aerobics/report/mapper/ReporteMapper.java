@@ -11,15 +11,36 @@ import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.Pa
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.RecaudoDiarioResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.SesionDestacadaPorDiaResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.TurnoSinCancelacionResponseDTO;
+import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.AsistenciaPorFechaResponseDTO;
+import org.jhanp_dev.psraerobicosbackend.modules.aerobics.checkin.enums.MetodoCheckin;
 import org.springframework.stereotype.Component;
 
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Time;
 
 @Component
 public class ReporteMapper {
+
+    public AsistenciaPorFechaResponseDTO aAsistenciaPorFechaDTO(ResultSet rs) throws SQLException {
+        Date fecha = rs.getDate("fecha_sesion");
+        Time hora = rs.getTime("hora_clase");
+        Timestamp llegada = rs.getTimestamp("hora_llegada");
+        return AsistenciaPorFechaResponseDTO.builder()
+                .asistenciaId(rs.getInt("asistencia_id"))
+                .fechaSesion(fecha == null ? null : fecha.toLocalDate())
+                .horaClase(hora == null ? null : hora.toLocalTime())
+                .alumno(rs.getString("alumno"))
+                .numeroDocumento(rs.getString("numero_documento"))
+                .telefono(rs.getString("telefono"))
+                .horaLlegada(llegada == null ? null : llegada.toLocalDateTime())
+                .metodoCheckin(MetodoCheckin.valueOf(rs.getString("metodo_checkin")))
+                .montoCobrado(rs.getBigDecimal("monto_cobrado"))
+                .confirmadoPor(rs.getString("confirmado_por"))
+                .build();
+    }
 
     public MetodoPagoAltoRecaudoResponseDTO aMetodoPagoAltoRecaudoDTO(ResultSet rs) throws SQLException {
         return MetodoPagoAltoRecaudoResponseDTO.builder()

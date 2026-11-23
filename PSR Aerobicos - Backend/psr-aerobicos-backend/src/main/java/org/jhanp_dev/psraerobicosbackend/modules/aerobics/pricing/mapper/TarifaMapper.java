@@ -14,7 +14,7 @@ public class TarifaMapper {
         }
         return Tarifa.builder()
                 .monto(dto.getMonto())
-                .actualizadoPor(dto.getActualizadoPor())
+                .actualizadoPor(dto.getUsuarioId())
                 .build();
     }
 

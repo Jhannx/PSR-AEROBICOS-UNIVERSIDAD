@@ -13,6 +13,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class TarifaRequestDTO {
     private BigDecimal monto;
-    private Integer actualizadoPor;
+    private Integer usuarioId;
 }
 

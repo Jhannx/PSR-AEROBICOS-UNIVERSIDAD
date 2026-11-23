@@ -2,6 +2,7 @@ package org.jhanp_dev.psraerobicosbackend.modules.person.mapper;
 
 import org.jhanp_dev.psraerobicosbackend.modules.person.dto.request.PersonaRequestDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.person.dto.response.PersonaResponseDTO;
+import org.jhanp_dev.psraerobicosbackend.modules.person.dto.response.ContactoEmergenciaResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.person.entity.Persona;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +21,6 @@ public class PersonaMapper {
                 .telefono(dto.getTelefono())
                 .fechaNacimiento(dto.getFechaNacimiento())
                 .observacionesSalud(dto.getObservacionesSalud())
-                .fuenteRegistro(dto.getFuenteRegistro())
                 .activo(dto.getActivo())
                 .build();
     }
@@ -42,6 +42,34 @@ public class PersonaMapper {
                 .fechaRegistro(entidad.getFechaRegistro())
                 .activo(entidad.getActivo())
                 .build();
+    }
+
+    public PersonaResponseDTO aResponseDTO(Persona persona, ContactoEmergenciaResponseDTO contacto,
+                                            java.math.BigDecimal saldo, String estadoCuenta) {
+        PersonaResponseDTO dto = aResponseDTO(persona);
+        if (dto == null) return null;
+        if (contacto != null) {
+            dto.setContactoNombre(contacto.getNombre());
+            dto.setContactoTelefono(contacto.getTelefono());
+            dto.setContactoObservaciones(contacto.getObservaciones());
+        }
+        dto.setSaldo(saldo);
+        dto.setEstadoCuenta(estadoCuenta);
+        return dto;
+    }
+
+    public PersonaResponseDTO aResponseDTO(Persona persona, String contactoNombre, String contactoTelefono,
+                                            String contactoObservaciones, java.math.BigDecimal saldo,
+                                            String estadoCuenta) {
+        PersonaResponseDTO dto = aResponseDTO(persona);
+        if (dto != null) {
+            dto.setContactoNombre(contactoNombre);
+            dto.setContactoTelefono(contactoTelefono);
+            dto.setContactoObservaciones(contactoObservaciones);
+            dto.setSaldo(saldo);
+            dto.setEstadoCuenta(estadoCuenta);
+        }
+        return dto;
     }
 }
 

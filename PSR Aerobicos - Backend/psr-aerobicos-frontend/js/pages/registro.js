@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const inputTelefono = document.getElementById("reg-telefono");
   const inputFechaNac = document.getElementById("reg-fecha-nacimiento");
   const inputCorreo = document.getElementById("reg-correo");
+  const inputPassword = document.getElementById("reg-password");
   const inputContactoNombre = document.getElementById("reg-contacto-nombre");
   const inputContactoTel = document.getElementById("reg-contacto-telefono");
   const inputContactoObs = document.getElementById("reg-contacto-obs");
@@ -60,6 +61,12 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
+    if (!inputPassword.value) {
+      ValidacionesPSR.mostrarAlerta(alertBox, "Debes elegir una contraseña para tu cuenta.", "error");
+      inputPassword.focus();
+      return;
+    }
+
     const valCorreo = ValidacionesPSR.validarCorreoOpcional(inputCorreo.value, false);
     if (!valCorreo.valido) {
       ValidacionesPSR.mostrarAlerta(alertBox, valCorreo.mensaje, "error");
@@ -89,10 +96,10 @@ document.addEventListener("DOMContentLoaded", function () {
       telefono: valTel.valor,
       fechaNacimiento: inputFechaNac.value,
       correo: valCorreo.valor || null,
-      fuenteRegistro: "AUTOREGISTRO",
-      contactoEmergenciaNombre: valContactoNom.valor,
-      contactoEmergenciaTelefono: valContactoTel.valor,
-      contactoEmergenciaObservaciones: inputContactoObs.value.trim() || null
+      password: inputPassword.value,
+      contactoNombre: valContactoNom.valor,
+      contactoTelefono: valContactoTel.valor,
+      contactoObservaciones: inputContactoObs.value.trim() || null
     };
 
     btnSubmit.disabled = true;

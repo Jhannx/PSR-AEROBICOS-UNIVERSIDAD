@@ -12,7 +12,8 @@ import org.jhanp_dev.psraerobicosbackend.modules.aerobics.checkin.enums.MetodoCh
 @AllArgsConstructor
 public class LlegadaRequestDTO {
     private Integer personaId;
-    private Integer sesionId;
+    private String documento;
+    private String documentNumber;
     private MetodoCheckin metodoCheckin;
 }
 

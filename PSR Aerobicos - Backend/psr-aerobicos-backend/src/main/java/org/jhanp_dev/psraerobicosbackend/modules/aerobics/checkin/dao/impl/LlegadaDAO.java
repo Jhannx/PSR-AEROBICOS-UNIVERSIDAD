@@ -10,6 +10,7 @@ import org.jhanp_dev.psraerobicosbackend.modules.aerobics.checkin.mapper.Llegada
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -129,6 +130,23 @@ public class LlegadaDAO implements ILlegadaDAO {
         }
         llegada.setMetodoCheckin(metodo);
         return llegadaMapper.aResponseDTO(llegada);
+    }
+
+    @Override
+    public LlegadaResponseDTO registrar(Integer personaId, Integer sesionId, LlegadaRequestDTO request) {
+        MetodoCheckin metodo = request.getMetodoCheckin() == null ? MetodoCheckin.MANUAL : request.getMetodoCheckin();
+        String llamada = "{CALL sp_registrar_llegada(?, ?, ?, ?)}";
+        try (CallableStatement stmt = conexion.prepareCall(llamada)) {
+            stmt.setInt(1, personaId);
+            stmt.setInt(2, sesionId);
+            stmt.setString(3, metodo.name());
+            stmt.registerOutParameter(4, java.sql.Types.INTEGER);
+            stmt.execute();
+            int id = stmt.getInt(4);
+            return obtenerPorId(id).orElseThrow(() -> new IllegalStateException("No se encontró la llegada registrada"));
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al registrar llegada: " + e.getMessage(), e);
+        }
     }
 
     @Override

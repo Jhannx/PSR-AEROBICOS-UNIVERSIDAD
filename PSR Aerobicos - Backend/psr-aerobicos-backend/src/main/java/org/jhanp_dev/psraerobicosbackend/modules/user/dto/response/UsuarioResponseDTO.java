@@ -18,5 +18,8 @@ public class UsuarioResponseDTO {
     private Integer personaId;
     private Boolean activo;
     private LocalDateTime fechaCreacion;
+    private String documento;
+    private String nombreCompleto;
+    private java.util.List<String> roles;
 }
 

@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const TARIFA_BASE = 5000;
   let filtroEstadoActual = "all";
+  let adelantoContexto = { personaId: 1, llegadaId: 1 };
 
   function aplicarFiltrosCola() {
     if (!contenedorCola) {
@@ -80,11 +81,13 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       const llegadaId = Number(fila.getAttribute("data-llegada-id") || 0);
+      const personaId = Number(fila.getAttribute("data-persona-id") || 1);
       const nombrePersona = (fila.querySelector(".queue-person-name") || {}).textContent || "Participante";
       const textoBoton = boton.textContent.trim();
 
-      // Abrir modal de pago por adelantado cargando el nombre de la fila
+      // Abrir modal de pago por adelantado cargando el nombre y IDs de la fila
       if (boton.getAttribute("data-bs-target") === "#modalPagoAdelantado") {
+        adelantoContexto = { personaId: personaId, llegadaId: llegadaId };
         const labelNombre = document.getElementById("adelanto-persona-nombre");
         if (labelNombre) {
           labelNombre.textContent = nombrePersona;
@@ -106,11 +109,15 @@ document.addEventListener("DOMContentLoaded", function () {
         const metodoPago = selectMetodo ? selectMetodo.value : "EFECTIVO";
         try {
           await ClienteHttp.post("/movimientos", {
+            personaId: personaId,
             llegadaId: llegadaId,
             montoRecibido: valMonto.valor,
             montoAbonado: valMonto.valor,
             metodoPago: metodoPago,
-            usuarioId: SesionPSR.obtenerUsuarioOPorDefecto().id
+            tipoMovimiento: "ABONO",
+            vueltoEntregado: true,
+            usuarioId: SesionPSR.obtenerUsuarioOPorDefecto().id,
+            nota: "Pago de sesión en recepción"
           });
           ValidacionesPSR.mostrarAlerta(
             alertBox,
@@ -160,6 +167,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // Acción: Anular asistencia
       if (textoBoton.indexOf("Anular") !== -1) {
+        try {
+          await ClienteHttp.del("/llegadas/" + llegadaId + "/asistencia");
+        } catch (error) {
+          if (!error.sinConexion) {
+            ValidacionesPSR.mostrarAlerta(alertBox, error.message, "error");
+            return;
+          }
+        }
         fila.classList.remove("is-attended");
         const badge = fila.querySelector(".psr-badge");
         if (badge) {
@@ -254,9 +269,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
       try {
         await ClienteHttp.post("/movimientos", {
+          personaId: adelantoContexto.personaId,
+          llegadaId: adelantoContexto.llegadaId,
           montoRecibido: valRecibido.valor,
           montoAbonado: valAbonado.valor,
           metodoPago: metodo,
+          tipoMovimiento: "ABONO",
+          vueltoEntregado: true,
           nota: inputAdelantoNota.value.trim() || "Pago por adelantado",
           usuarioId: SesionPSR.obtenerUsuarioOPorDefecto().id
         });

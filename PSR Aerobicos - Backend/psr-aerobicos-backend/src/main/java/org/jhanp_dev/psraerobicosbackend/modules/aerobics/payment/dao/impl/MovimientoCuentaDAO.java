@@ -11,6 +11,7 @@ import org.jhanp_dev.psraerobicosbackend.modules.aerobics.payment.mapper.Movimie
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -75,6 +76,21 @@ public class MovimientoCuentaDAO implements IMovimientoCuentaDAO {
     }
 
     @Override
+    public List<MovimientoCuentaResponseDTO> listarPorLlegadaId(Integer llegadaId) {
+        String sql = BASE_SELECT + " WHERE llegada_id = ? ORDER BY fecha_hora DESC";
+        List<MovimientoCuentaResponseDTO> movimientos = new ArrayList<>();
+        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, llegadaId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) movimientos.add(movimientoCuentaMapper.aResponseDTO(mapearFila(rs)));
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al consultar movimientos por llegada: " + e.getMessage(), e);
+        }
+        return movimientos;
+    }
+
+    @Override
     public Optional<MovimientoCuentaResponseDTO> obtenerPorId(Integer id) {
         String sql = BASE_SELECT + " WHERE id = ?";
 
@@ -95,17 +111,8 @@ public class MovimientoCuentaDAO implements IMovimientoCuentaDAO {
     @Override
     public MovimientoCuentaResponseDTO guardar(MovimientoCuentaRequestDTO dto) {
         MovimientoCuenta movimiento = movimientoCuentaMapper.aEntidad(dto);
-        String sql = """
-                INSERT INTO movimiento_cuenta (
-                    persona_id, llegada_id, monto_recibido, monto_abonado,
-                    metodo_pago, tipo_movimiento, vuelto_entregado, usuario_id, nota
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """;
-        MetodoPago metodo = movimiento.getMetodoPago() != null ? movimiento.getMetodoPago() : MetodoPago.EFECTIVO;
-        TipoMovimiento tipo = movimiento.getTipoMovimiento() != null ? movimiento.getTipoMovimiento() : TipoMovimiento.ABONO;
-        boolean vueltoEntregado = movimiento.getVueltoEntregado() != null ? movimiento.getVueltoEntregado() : true;
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        String sql = "{CALL sp_registrar_movimiento(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        try (CallableStatement stmt = conexion.prepareCall(sql)) {
             stmt.setInt(1, movimiento.getPersonaId());
             if (movimiento.getLlegadaId() != null) {
                 stmt.setInt(2, movimiento.getLlegadaId());
@@ -114,29 +121,26 @@ public class MovimientoCuentaDAO implements IMovimientoCuentaDAO {
             }
             stmt.setBigDecimal(3, movimiento.getMontoRecibido());
             stmt.setBigDecimal(4, movimiento.getMontoAbonado());
-            stmt.setString(5, metodo.name());
-            stmt.setString(6, tipo.name());
-            stmt.setBoolean(7, vueltoEntregado);
-            stmt.setInt(8, movimiento.getUsuarioId());
-            if (movimiento.getNota() != null) {
-                stmt.setString(9, movimiento.getNota());
+            stmt.setString(5, movimiento.getMetodoPago() == null ? MetodoPago.EFECTIVO.name() : movimiento.getMetodoPago().name());
+            if (movimiento.getTipoMovimiento() != null) {
+                stmt.setString(6, movimiento.getTipoMovimiento().name());
             } else {
-                stmt.setNull(9, Types.VARCHAR);
+                stmt.setNull(6, Types.VARCHAR);
             }
-
-            stmt.executeUpdate();
-            try (ResultSet keys = stmt.getGeneratedKeys()) {
-                if (keys.next()) {
-                    movimiento.setId(keys.getInt(1));
-                }
+            if (movimiento.getVueltoEntregado() != null) {
+                stmt.setBoolean(7, movimiento.getVueltoEntregado());
+            } else {
+                stmt.setNull(7, Types.BOOLEAN);
             }
+            stmt.setInt(8, movimiento.getUsuarioId());
+            stmt.setString(9, movimiento.getNota());
+            stmt.registerOutParameter(10, Types.INTEGER);
+            stmt.execute();
+            movimiento.setId(stmt.getInt(10));
         } catch (SQLException e) {
             throw new IllegalStateException("Error al guardar movimiento de cuenta: " + e.getMessage(), e);
         }
-        movimiento.setMetodoPago(metodo);
-        movimiento.setTipoMovimiento(tipo);
-        movimiento.setVueltoEntregado(vueltoEntregado);
-        return movimientoCuentaMapper.aResponseDTO(movimiento);
+        return obtenerPorId(movimiento.getId()).orElseThrow(() -> new IllegalStateException("No se encontró el movimiento registrado"));
     }
 
     @Override

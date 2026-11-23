@@ -162,7 +162,6 @@ document.addEventListener("DOMContentLoaded", function () {
         apellidos: valApe.valor,
         telefono: valTel.valor,
         fechaNacimiento: inputFechaNac.value,
-        fuenteRegistro: "ADMIN",
         contactoNombre: valContNom.valor,
         contactoTelefono: valContTel.valor,
         contactoObservaciones: inputContactoObs.value.trim() || null

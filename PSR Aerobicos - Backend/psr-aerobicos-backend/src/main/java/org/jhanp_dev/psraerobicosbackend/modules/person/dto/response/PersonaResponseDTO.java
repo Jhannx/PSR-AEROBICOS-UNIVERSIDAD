@@ -26,5 +26,10 @@ public class PersonaResponseDTO {
     private FuenteRegistro fuenteRegistro;
     private LocalDateTime fechaRegistro;
     private Boolean activo;
+    private String contactoNombre;
+    private String contactoTelefono;
+    private String contactoObservaciones;
+    private java.math.BigDecimal saldo;
+    private String estadoCuenta;
 }
 

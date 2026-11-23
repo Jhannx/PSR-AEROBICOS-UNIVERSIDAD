@@ -12,6 +12,7 @@ public interface ILlegadaDAO {
     List<LlegadaResponseDTO> listarPorPersonaId(Integer personaId);
     Optional<LlegadaResponseDTO> obtenerPorId(Integer id);
     LlegadaResponseDTO guardar(LlegadaRequestDTO dto);
+    LlegadaResponseDTO registrar(Integer personaId, Integer sesionId, LlegadaRequestDTO request);
     boolean actualizar(Integer id, LlegadaRequestDTO dto);
     boolean eliminar(Integer id);
 }

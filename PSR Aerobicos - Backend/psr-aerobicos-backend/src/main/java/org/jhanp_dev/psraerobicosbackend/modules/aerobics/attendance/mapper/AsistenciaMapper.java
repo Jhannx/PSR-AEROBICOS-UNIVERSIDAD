@@ -13,10 +13,17 @@ public class AsistenciaMapper {
             return null;
         }
         return Asistencia.builder()
-                .llegadaId(dto.getLlegadaId())
-                .montoCobrado(dto.getMontoCobrado())
-                .marcadoPor(dto.getMarcadoPor())
+                .marcadoPor(dto.getUsuarioId())
                 .build();
+    }
+
+    public Asistencia aEntidad(AsistenciaRequestDTO dto, Integer llegadaId, java.math.BigDecimal montoCobrado) {
+        Asistencia asistencia = aEntidad(dto);
+        if (asistencia != null) {
+            asistencia.setLlegadaId(llegadaId);
+            asistencia.setMontoCobrado(montoCobrado);
+        }
+        return asistencia;
     }
 
     public AsistenciaResponseDTO aResponseDTO(Asistencia entidad) {

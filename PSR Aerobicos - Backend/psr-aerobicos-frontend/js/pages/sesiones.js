@@ -74,7 +74,9 @@ document.addEventListener("DOMContentLoaded", function () {
       const sesionId = tarjeta.getAttribute("data-sesion-id");
 
       try {
-        await ClienteHttp.del("/sesiones/" + sesionId);
+        await ClienteHttp.del(
+          "/sesiones/" + sesionId + "?usuarioId=" + SesionPSR.obtenerUsuarioOPorDefecto().id
+        );
       } catch (error) {
         if (!error.sinConexion) {
           return;

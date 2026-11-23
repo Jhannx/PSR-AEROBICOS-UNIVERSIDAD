@@ -8,143 +8,74 @@ import org.jhanp_dev.psraerobicosbackend.modules.aerobics.attendance.entity.Asis
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.attendance.mapper.AsistenciaMapper;
 import org.springframework.stereotype.Repository;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.Types;
 import java.util.Optional;
 
 @Repository
 public class AsistenciaDAO implements IAsistenciaDAO {
 
     private final Connection conexion;
-    private final AsistenciaMapper asistenciaMapper;
+    private final AsistenciaMapper mapper;
 
-    public AsistenciaDAO(AsistenciaMapper asistenciaMapper) throws SQLException {
+    public AsistenciaDAO(AsistenciaMapper mapper) throws SQLException {
         this.conexion = ConexionDB.getConexion();
-        this.asistenciaMapper = asistenciaMapper;
-    }
-
-    private static final String BASE_SELECT = """
-            SELECT id, llegada_id, monto_cobrado, marcado_por, hora_marcado
-            FROM asistencia
-            """;
-
-    @Override
-    public List<AsistenciaResponseDTO> listarTodos() {
-        String sql = BASE_SELECT + " ORDER BY hora_marcado DESC";
-        List<AsistenciaResponseDTO> asistencias = new ArrayList<>();
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                Asistencia entidad = mapearFila(rs);
-                asistencias.add(asistenciaMapper.aResponseDTO(entidad));
-            }
-        } catch (SQLException e) {
-            throw new IllegalStateException("Error al listar asistencias: " + e.getMessage(), e);
-        }
-        return asistencias;
-    }
-
-    @Override
-    public Optional<AsistenciaResponseDTO> obtenerPorId(Integer id) {
-        String sql = BASE_SELECT + " WHERE id = ?";
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    Asistencia entidad = mapearFila(rs);
-                    return Optional.of(asistenciaMapper.aResponseDTO(entidad));
-                }
-            }
-        } catch (SQLException e) {
-            throw new IllegalStateException("Error al obtener asistencia por id: " + e.getMessage(), e);
-        }
-        return Optional.empty();
+        this.mapper = mapper;
     }
 
     @Override
     public Optional<AsistenciaResponseDTO> obtenerPorLlegadaId(Integer llegadaId) {
-        String sql = BASE_SELECT + " WHERE llegada_id = ?";
-
+        String sql = "SELECT id, llegada_id, monto_cobrado, marcado_por, hora_marcado FROM asistencia WHERE llegada_id = ?";
         try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setInt(1, llegadaId);
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    Asistencia entidad = mapearFila(rs);
-                    return Optional.of(asistenciaMapper.aResponseDTO(entidad));
-                }
+                if (rs.next()) return Optional.of(mapper.aResponseDTO(mapearFila(rs)));
             }
         } catch (SQLException e) {
-            throw new IllegalStateException("Error al obtener asistencia por llegada_id: " + e.getMessage(), e);
+            throw new IllegalStateException("Error al consultar asistencia: " + e.getMessage(), e);
         }
         return Optional.empty();
     }
 
     @Override
-    public AsistenciaResponseDTO guardar(AsistenciaRequestDTO dto) {
-        Asistencia asistencia = asistenciaMapper.aEntidad(dto);
-        String sql = "INSERT INTO asistencia (llegada_id, monto_cobrado, marcado_por) VALUES (?, ?, ?)";
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setInt(1, asistencia.getLlegadaId());
-            stmt.setBigDecimal(2, asistencia.getMontoCobrado());
-            stmt.setInt(3, asistencia.getMarcadoPor());
-            stmt.executeUpdate();
-            try (ResultSet keys = stmt.getGeneratedKeys()) {
-                if (keys.next()) {
-                    asistencia.setId(keys.getInt(1));
-                }
-            }
+    public AsistenciaResponseDTO registrar(Integer llegadaId, AsistenciaRequestDTO request) {
+        String call = "{CALL sp_registrar_asistencia(?, ?, ?)}";
+        try (CallableStatement stmt = conexion.prepareCall(call)) {
+            stmt.setInt(1, llegadaId);
+            stmt.setInt(2, request.getUsuarioId());
+            stmt.registerOutParameter(3, Types.INTEGER);
+            stmt.execute();
+            return obtenerPorLlegadaId(llegadaId).orElseThrow(
+                    () -> new IllegalStateException("El procedimiento no generó la asistencia esperada"));
         } catch (SQLException e) {
-            throw new IllegalStateException("Error al guardar asistencia: " + e.getMessage(), e);
-        }
-        return asistenciaMapper.aResponseDTO(asistencia);
-    }
-
-    @Override
-    public boolean actualizar(Integer id, AsistenciaRequestDTO dto) {
-        Asistencia asistencia = asistenciaMapper.aEntidad(dto);
-        asistencia.setId(id);
-        String sql = "UPDATE asistencia SET llegada_id = ?, monto_cobrado = ?, marcado_por = ? WHERE id = ?";
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
-            stmt.setInt(1, asistencia.getLlegadaId());
-            stmt.setBigDecimal(2, asistencia.getMontoCobrado());
-            stmt.setInt(3, asistencia.getMarcadoPor());
-            stmt.setInt(4, asistencia.getId());
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            throw new IllegalStateException("Error al actualizar asistencia: " + e.getMessage(), e);
+            throw new IllegalStateException("Error al registrar asistencia: " + e.getMessage(), e);
         }
     }
 
     @Override
-    public boolean eliminar(Integer id) {
-        String sql = "DELETE FROM asistencia WHERE id = ?";
-
+    public boolean anularPorLlegadaId(Integer llegadaId) {
+        String sql = "DELETE FROM asistencia WHERE llegada_id = ?";
         try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
-            stmt.setInt(1, id);
+            stmt.setInt(1, llegadaId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            throw new IllegalStateException("Error al eliminar asistencia: " + e.getMessage(), e);
+            throw new IllegalStateException("Error al anular asistencia: " + e.getMessage(), e);
         }
     }
 
     private Asistencia mapearFila(ResultSet rs) throws SQLException {
-        Timestamp horaMarcado = rs.getTimestamp("hora_marcado");
+        Timestamp hora = rs.getTimestamp("hora_marcado");
         return Asistencia.builder()
                 .id(rs.getInt("id"))
                 .llegadaId(rs.getInt("llegada_id"))
                 .montoCobrado(rs.getBigDecimal("monto_cobrado"))
                 .marcadoPor(rs.getInt("marcado_por"))
-                .horaMarcado(horaMarcado != null ? horaMarcado.toLocalDateTime() : null)
+                .horaMarcado(hora == null ? null : hora.toLocalDateTime())
                 .build();
     }
 }

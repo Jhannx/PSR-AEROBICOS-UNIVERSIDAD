@@ -13,11 +13,10 @@ public class UsuarioMapper {
             return null;
         }
         return Usuario.builder()
-                .numeroDocumento(dto.getNumeroDocumento())
+                .numeroDocumento(dto.getDocumento() != null ? dto.getDocumento() : dto.getIdentificador())
                 .correo(dto.getCorreo())
-                .passwordHash(dto.getPasswordHash())
                 .personaId(dto.getPersonaId())
-                .activo(dto.getActivo())
+                .activo(true)
                 .build();
     }
 
@@ -32,7 +31,23 @@ public class UsuarioMapper {
                 .personaId(entidad.getPersonaId())
                 .activo(entidad.getActivo())
                 .fechaCreacion(entidad.getFechaCreacion())
+                .documento(entidad.getNumeroDocumento())
                 .build();
+    }
+
+    public UsuarioResponseDTO aResponseDTO(Usuario entidad, String nombreCompleto, java.util.List<String> roles) {
+        UsuarioResponseDTO dto = aResponseDTO(entidad);
+        if (dto != null) {
+            dto.setNombreCompleto(nombreCompleto);
+            dto.setRoles(roles);
+        }
+        return dto;
+    }
+
+    public String obtenerIdentificador(org.jhanp_dev.psraerobicosbackend.modules.user.dto.request.UsuarioRequestDTO dto) {
+        if (dto == null) return null;
+        if (dto.getIdentificador() != null) return dto.getIdentificador();
+        return dto.getDocumento();
     }
 }
 

@@ -8,7 +8,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const formCrearUsuario = document.getElementById("form-crear-usuario");
   const selectPersona = document.getElementById("usuario-persona-select");
   const inputCorreo = document.getElementById("usuario-correo");
-  const inputPassword = document.getElementById("usuario-password");
   const modalError = document.getElementById("modal-usuario-error");
 
   // Buscador de cuentas por nombre o documento
@@ -52,7 +51,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
       try {
         if (!yaAsignado) {
-          await ClienteHttp.post("/usuarios/" + usuarioId + "/roles", { rolNombre: rol });
+          await ClienteHttp.post("/usuarios/" + usuarioId + "/roles", {
+            rolNombre: rol,
+            roleName: rol
+          });
         } else {
           await ClienteHttp.del("/usuarios/" + usuarioId + "/roles/" + rol);
         }
@@ -91,18 +93,10 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      const pass = String(inputPassword.value || "").trim();
-      if (pass.length < 6) {
-        ValidacionesPSR.mostrarAlerta(modalError, "La contraseña debe tener al menos 6 caracteres.", "error");
-        inputPassword.focus();
-        return;
-      }
-
       try {
         await ClienteHttp.post("/usuarios", {
           personaId: personaId,
-          correo: valCorreo.valor,
-          password: pass
+          correo: valCorreo.valor
         });
       } catch (error) {
         if (!error.sinConexion) {

@@ -17,6 +17,7 @@ import org.jhanp_dev.psraerobicosbackend.shared.exception.ReglaNegocioException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -109,6 +110,17 @@ public class ReporteService implements IReporteService {
             throw new RecursoNoEncontradoException("No se encontraron registros de recaudo diario");
         }
         return datos;
+    }
+
+    @Override
+    public List<org.jhanp_dev.psraerobicosbackend.modules.person.dto.response.SaldoPersonaResponseDTO> obtenerSaldosPersonas() {
+        return reporteDAO.obtenerSaldosPersonas();
+    }
+
+    @Override
+    public List<org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.AsistenciaPorFechaResponseDTO> obtenerAsistenciasPorFecha(LocalDate fecha) {
+        if (fecha == null) throw new ReglaNegocioException("La fecha es obligatoria");
+        return reporteDAO.obtenerAsistenciasPorFecha(fecha);
     }
 }
 

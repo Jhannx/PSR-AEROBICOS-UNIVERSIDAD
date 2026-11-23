@@ -130,7 +130,7 @@ public class HorarioDAO implements IHorarioDAO {
 
     @Override
     public boolean eliminar(Integer id) {
-        String sql = "DELETE FROM horario WHERE id = ?";
+        String sql = "UPDATE horario SET activo = FALSE WHERE id = ?";
 
         try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setInt(1, id);

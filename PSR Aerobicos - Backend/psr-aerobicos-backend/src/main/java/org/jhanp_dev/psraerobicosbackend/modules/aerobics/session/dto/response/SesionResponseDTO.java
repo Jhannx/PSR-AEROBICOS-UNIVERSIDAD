@@ -23,5 +23,6 @@ public class SesionResponseDTO {
     private Boolean cancelada;
     private Integer totalAsistencias;
     private BigDecimal totalRecaudo;
+    private String instructor;
 }
 

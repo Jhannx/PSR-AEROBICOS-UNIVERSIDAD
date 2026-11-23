@@ -118,6 +118,14 @@ public class TarifaDAO implements ITarifaDAO {
     }
 
     @Override
+    public TarifaResponseDTO actualizarVigente(TarifaRequestDTO dto) {
+        if (!actualizar(TARIFA_SINGLETON_ID, dto)) {
+            throw new IllegalStateException("No existe la tarifa vigente para actualizar");
+        }
+        return obtenerTarifaActual().orElseThrow(() -> new IllegalStateException("No se encontró la tarifa vigente"));
+    }
+
+    @Override
     public boolean eliminar(Integer id) {
         String sql = "DELETE FROM tarifa WHERE id = ?";
 
