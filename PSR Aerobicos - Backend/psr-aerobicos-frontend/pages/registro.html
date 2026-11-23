@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crea tu Perfil | PSR Aeróbicos</title>
+  <link rel="icon" type="image/png" href="../img/logo-psr-pestaña.png">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="auth-screen align-items-start pt-4 pb-5">
+    <div class="auth-container">
+      <div class="mb-3">
+        <a href="../index.html" class="btn-psr-secondary py-1 px-3 small">
+          <i class="ph-bold ph-arrow-left"></i>
+          <span>Volver a Iniciar Sesión</span>
+        </a>
+      </div>
+
+      <header class="text-center mb-4">
+        <p class="text-secondary text-uppercase small fw-bold mb-1">PSR Aeróbicos</p>
+        <h1 class="auth-brand-title fs-3">Crea tu perfil</h1>
+        <p class="auth-brand-subtitle">Completa tus datos personales y contacto de emergencia</p>
+      </header>
+
+      <div id="registro-alert" class="psr-alert psr-alert-error d-none mb-3" role="alert">
+        <span id="registro-alert-text">Verifica los campos obligatorios antes de continuar.</span>
+      </div>
+
+      <!-- Formulario de autoregistro de persona con contacto de emergencia -->
+      <form id="registro-form" class="psr-card d-flex flex-column gap-3" novalidate>
+        <div class="row g-2">
+          <div class="col-12 col-sm-6">
+            <div class="psr-field">
+              <label for="reg-nombre" class="psr-label">Nombres *</label>
+              <input
+                type="text"
+                id="reg-nombre"
+                class="psr-input"
+                placeholder="Rosa"
+                maxlength="100"
+                required
+              >
+            </div>
+          </div>
+          <div class="col-12 col-sm-6">
+            <div class="psr-field">
+              <label for="reg-apellidos" class="psr-label">Apellidos *</label>
+              <input
+                type="text"
+                id="reg-apellidos"
+                class="psr-input"
+                placeholder="Martínez López"
+                maxlength="100"
+                required
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-4">
+            <div class="psr-field">
+              <label for="reg-tipo-doc" class="psr-label">Tipo Doc. *</label>
+              <select id="reg-tipo-doc" class="psr-select" required>
+                <option value="CC">CC</option>
+                <option value="TI">TI</option>
+                <option value="CE">CE</option>
+                <option value="PA">PA</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-8">
+            <div class="psr-field">
+              <label for="reg-documento" class="psr-label">Número de Documento *</label>
+              <input
+                type="text"
+                id="reg-documento"
+                class="psr-input"
+                inputmode="numeric"
+                placeholder="1001234567"
+                maxlength="20"
+                required
+              >
+              <p class="form-hint">Solo números, entre 6 y 20 dígitos.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-12 col-sm-6">
+            <div class="psr-field">
+              <label for="reg-telefono" class="psr-label">Teléfono *</label>
+              <input
+                type="text"
+                id="reg-telefono"
+                class="psr-input"
+                inputmode="numeric"
+                placeholder="3001234567"
+                maxlength="20"
+                required
+              >
+            </div>
+          </div>
+          <div class="col-12 col-sm-6">
+            <div class="psr-field">
+              <label for="reg-fecha-nacimiento" class="psr-label">Fecha de Nacimiento *</label>
+              <input
+                type="date"
+                id="reg-fecha-nacimiento"
+                class="psr-input"
+                required
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="psr-field">
+          <label for="reg-correo" class="psr-label">Correo Electrónico (opcional)</label>
+          <input
+            type="email"
+            id="reg-correo"
+            class="psr-input"
+            placeholder="rosa.martinez@correo.com"
+            maxlength="150"
+          >
+        </div>
+
+        <!-- Bloque de Contacto de Emergencia (Relación 1:1 en BD) -->
+        <div class="pt-2 border-top" style="border-color: var(--border-subtle) !important;">
+          <p class="psr-label mb-2 d-flex align-items-center gap-2">
+            <i class="ph-bold ph-phone-call" style="color: var(--emerald-400);"></i>
+            <span>Contacto de Emergencia</span>
+          </p>
+
+          <div class="row g-2">
+            <div class="col-12 col-sm-6">
+              <div class="psr-field">
+                <label for="reg-contacto-nombre" class="psr-label">Nombre del Contacto *</label>
+                <input
+                  type="text"
+                  id="reg-contacto-nombre"
+                  class="psr-input"
+                  placeholder="Carlos Martínez"
+                  maxlength="100"
+                  required
+                >
+              </div>
+            </div>
+            <div class="col-12 col-sm-6">
+              <div class="psr-field">
+                <label for="reg-contacto-telefono" class="psr-label">Teléfono de Emergencia *</label>
+                <input
+                  type="text"
+                  id="reg-contacto-telefono"
+                  class="psr-input"
+                  inputmode="numeric"
+                  placeholder="3109876543"
+                  maxlength="20"
+                  required
+                >
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="psr-field">
+                <label for="reg-contacto-obs" class="psr-label">Parentesco u Observaciones</label>
+                <input
+                  type="text"
+                  id="reg-contacto-obs"
+                  class="psr-input"
+                  placeholder="Hermano / Ninguna alergia reportada"
+                  maxlength="255"
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" id="btn-registro-submit" class="btn-psr-primary w-100 py-3 mt-2">
+          <i class="ph-bold ph-user-plus"></i>
+          <span>Completar Registro</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/libs/bootstrap.bundle.min.js"></script>
+  <script src="../js/utils/config.js"></script>
+  <script src="../js/utils/sesion.js"></script>
+  <script src="../js/utils/validaciones.js"></script>
+  <script src="../js/utils/cliente-http.js"></script>
+  <script src="../js/pages/registro.js"></script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+/* Controles de formulario, buscadores con ícono y alertas de validación */
+
+.psr-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.psr-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.psr-input,
+.psr-select,
+.psr-textarea {
+  width: 100%;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.9rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.psr-modal .psr-input,
+.psr-modal .psr-select,
+.psr-modal .psr-textarea,
+.psr-card .psr-input,
+.psr-card .psr-select {
+  background-color: var(--bg-body);
+}
+
+.psr-input::placeholder,
+.psr-textarea::placeholder {
+  color: var(--text-dim);
+}
+
+.psr-input:focus,
+.psr-select:focus,
+.psr-textarea:focus {
+  border-color: var(--emerald-500);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+}
+
+.psr-input:disabled,
+.psr-select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Buscador o campo con ícono interno a la izquierda o botón a la derecha */
+.input-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.input-icon-left {
+  position: absolute;
+  left: 0.95rem;
+  color: var(--text-dim);
+  font-size: 1.05rem;
+  pointer-events: none;
+}
+
+.psr-input.has-icon-left {
+  padding-left: 2.65rem;
+}
+
+.psr-input.has-icon-right {
+  padding-right: 2.65rem;
+}
+
+.input-action-right {
+  position: absolute;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  padding: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.input-action-right:hover {
+  color: var(--text-primary);
+}
+
+/* Campo de monto con signo de pesos integrado */
+.currency-input-group {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-body);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0 0.7rem;
+  transition: border-color 0.15s ease;
+}
+
+.currency-input-group:focus-within {
+  border-color: var(--emerald-500);
+}
+
+.currency-prefix {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-right: 0.35rem;
+}
+
+.currency-input-group input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem 0;
+  outline: none;
+}
+
+/* Mensajes de ayuda y alertas de formulario */
+.form-hint {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin: 0;
+}
+
+.form-hint.is-warning {
+  color: var(--amber-400);
+}
+
+.psr-alert {
+  border-radius: var(--radius-md);
+  padding: 0.7rem 0.95rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.psr-alert-error {
+  background-color: var(--rose-bg-soft);
+  border: 1px solid var(--rose-border-soft);
+  color: var(--rose-400);
+}
+
+.psr-alert-success {
+  background-color: var(--emerald-bg-soft);
+  border: 1px solid var(--emerald-border-soft);
+  color: var(--emerald-400);
+}

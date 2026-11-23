@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión | PSR Aeróbicos</title>
+  <link rel="icon" type="image/png" href="img/logo-psr-pestaña.png">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="auth-screen">
+    <div class="auth-glow" aria-hidden="true"></div>
+
+    <div class="auth-container">
+      <header class="text-center mb-4">
+        <h1 class="auth-brand-title">PSR Aeróbicos</h1>
+        <p class="auth-brand-subtitle">Ingresa a tu cuenta para continuar</p>
+      </header>
+
+      <!-- Tarjeta del formulario de autenticación -->
+      <form id="login-form" class="psr-card d-flex flex-column gap-3" novalidate>
+        <div class="psr-field">
+          <label for="login-identificador" class="psr-label">Documento o correo electrónico</label>
+          <div class="input-icon-wrapper">
+            <i class="ph-bold ph-identification-card input-icon-left"></i>
+            <input
+              type="text"
+              id="login-identificador"
+              name="identificador"
+              class="psr-input has-icon-left"
+              placeholder="1001234567 / elena.vargas@psr.com"
+              maxlength="150"
+              autocomplete="username"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="psr-field">
+          <label for="login-password" class="psr-label">Contraseña</label>
+          <div class="input-icon-wrapper">
+            <i class="ph-bold ph-lock-key input-icon-left"></i>
+            <input
+              type="password"
+              id="login-password"
+              name="password"
+              class="psr-input has-icon-left has-icon-right"
+              placeholder="••••••••"
+              maxlength="100"
+              autocomplete="current-password"
+              required
+            >
+            <button
+              type="button"
+              id="btn-toggle-password"
+              class="input-action-right"
+              aria-label="Mostrar u ocultar contraseña"
+            >
+              <i class="ph-bold ph-eye" id="icon-toggle-password"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Contenedor de mensajes de error de login -->
+        <div id="login-error-alert" class="psr-alert psr-alert-error d-none" role="alert">
+          <span id="login-error-text">Documento/correo o contraseña incorrectos.</span>
+        </div>
+
+        <button type="submit" id="btn-login-submit" class="btn-psr-primary w-100 py-3 mt-1 fs-6">
+          <i class="ph-bold ph-sign-in"></i>
+          <span id="btn-login-label">Ingresar</span>
+        </button>
+      </form>
+
+      <p class="text-center text-secondary small mt-4 mb-0">
+        ¿Primera vez en PSR Aeróbicos?
+        <a href="pages/registro.html" class="fw-bold" style="color: var(--emerald-400);">Regístrate aquí</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="js/libs/bootstrap.bundle.min.js"></script>
+  <script src="js/utils/config.js"></script>
+  <script src="js/utils/sesion.js"></script>
+  <script src="js/utils/validaciones.js"></script>
+  <script src="js/utils/cliente-http.js"></script>
+  <script src="js/pages/login.js"></script>
+</body>
+</html>

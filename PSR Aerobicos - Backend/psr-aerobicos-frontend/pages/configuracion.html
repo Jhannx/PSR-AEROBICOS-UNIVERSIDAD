@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuración General | PSR Aeróbicos</title>
+  <link rel="icon" type="image/png" href="../img/logo-psr-pestaña.png">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="mobile-topbar">
+      <span class="mobile-topbar-brand">PSR • Aeróbicos</span>
+      <button type="button" class="mobile-menu-btn" id="btn-mobile-menu" aria-label="Abrir menú">
+        <i class="ph-bold ph-list"></i>
+      </button>
+    </header>
+
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+    <aside class="app-sidebar" id="app-sidebar"></aside>
+
+    <!-- Configuración General: Tarifa Vigente y Métodos de Pago -->
+    <main class="app-main">
+      <div class="page-container">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">
+              <i class="ph-bold ph-gear"></i>
+              <span>Configuración General</span>
+            </h1>
+            <p class="page-subtitle">
+              Tarifa oficial por sesión de aeróbicos y canales de pago habilitados
+            </p>
+          </div>
+        </header>
+
+        <!-- Pestañas de configuración -->
+        <nav class="psr-tabs" id="config-tabs">
+          <button type="button" class="psr-tab is-active" data-tab="tarifa">
+            <i class="ph-bold ph-currency-dollar"></i>
+            <span>Tarifa por Sesión</span>
+          </button>
+          <button type="button" class="psr-tab" data-tab="metodos">
+            <i class="ph-bold ph-credit-card"></i>
+            <span>Métodos de Pago</span>
+          </button>
+        </nav>
+
+        <div id="config-alert-box" class="psr-alert psr-alert-success d-none" role="alert">
+          <span id="config-alert-text">Tarifa actualizada y registrada en auditoría.</span>
+        </div>
+
+        <div class="row g-3">
+          <!-- Panel 1: Tarifa Vigente (dispara trg_tarifa_actualizar_y_auditar) -->
+          <div class="col-12 col-md-6 col-lg-5" id="panel-config-tarifa">
+            <form id="form-tarifa" class="psr-card d-flex flex-column gap-3" novalidate>
+              <div>
+                <h2 class="fs-6 fw-bold text-white mb-1">Valor Vigente por Sesión</h2>
+                <p class="small text-secondary mb-0">
+                  Este valor se aplica automáticamente al confirmar asistencias en recepción.
+                </p>
+              </div>
+
+              <div class="psr-field">
+                <label for="tarifa-monto-input" class="psr-label">Monto en Pesos Colombianos (COP) *</label>
+                <div class="currency-input-group py-1">
+                  <span class="currency-prefix">$</span>
+                  <input
+                    type="text"
+                    id="tarifa-monto-input"
+                    inputmode="numeric"
+                    value="5000"
+                    maxlength="10"
+                    required
+                  >
+                </div>
+                <p class="form-hint">Al actualizar, el trigger registra el valor anterior y el nuevo en auditoría.</p>
+              </div>
+
+              <button type="submit" id="btn-guardar-tarifa" class="btn-psr-primary w-100">
+                <i class="ph-bold ph-floppy-disk"></i>
+                <span>Guardar Nueva Tarifa</span>
+              </button>
+
+              <div class="pt-3 border-top d-flex align-items-center justify-content-between small text-secondary" style="border-color: var(--border-subtle) !important;">
+                <span>
+                  <i class="ph-bold ph-clock-counter-clockwise"></i>
+                  Última actualización: <span id="tarifa-fecha-actualizacion">22/11/2026</span>
+                </span>
+                <strong class="text-white" id="tarifa-vigente-display">$5.000</strong>
+              </div>
+            </form>
+          </div>
+
+          <!-- Panel 2: Métodos de Pago Aceptados -->
+          <div class="col-12 col-md-6 col-lg-7" id="panel-config-metodos">
+            <div class="psr-card d-flex flex-column gap-3">
+              <div>
+                <h2 class="fs-6 fw-bold text-white mb-1">Métodos de Pago Aceptados</h2>
+                <p class="small text-secondary mb-0">
+                  Opciones disponibles en la tabla de movimientos de cuenta para registrar abonos y cobros.
+                </p>
+              </div>
+
+              <div class="d-flex flex-column gap-2">
+                <div class="psr-card-compact d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-3">
+                    <i class="ph-bold ph-money fs-4" style="color: var(--emerald-400);"></i>
+                    <div>
+                      <p class="fw-bold text-white mb-0">Efectivo (EFECTIVO)</p>
+                      <p class="small text-secondary mb-0">Recepción directa en caja y cálculo inmediato de cambio</p>
+                    </div>
+                  </div>
+                  <span class="psr-badge badge-emerald">Habilitado</span>
+                </div>
+
+                <div class="psr-card-compact d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-3">
+                    <i class="ph-bold ph-bank fs-4" style="color: var(--blue-400);"></i>
+                    <div>
+                      <p class="fw-bold text-white mb-0">Transferencia (TRANSFERENCIA)</p>
+                      <p class="small text-secondary mb-0">Verificación de comprobante bancario o billetera digital</p>
+                    </div>
+                  </div>
+                  <span class="psr-badge badge-emerald">Habilitado</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/libs/bootstrap.bundle.min.js"></script>
+  <script src="../js/utils/config.js"></script>
+  <script src="../js/utils/sesion.js"></script>
+  <script src="../js/utils/validaciones.js"></script>
+  <script src="../js/utils/cliente-http.js"></script>
+  <script src="../js/utils/layout.js"></script>
+  <script src="../js/pages/configuracion.js"></script>
+</body>
+</html>

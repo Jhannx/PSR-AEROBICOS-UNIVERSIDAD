@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seleccionar Rol | PSR Aeróbicos</title>
+  <link rel="icon" type="image/png" href="../img/logo-psr-pestaña.png">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="auth-screen">
+    <div class="auth-glow" aria-hidden="true"></div>
+
+    <div class="auth-container">
+      <div class="d-flex justify-content-end mb-2">
+        <a href="recepcion.html" id="btn-cancelar-cambio-rol" class="btn-icon-action" title="Volver al panel">
+          <i class="ph-bold ph-x fs-5"></i>
+        </a>
+      </div>
+
+      <header class="text-center mb-4">
+        <h1 class="auth-brand-title fs-2" id="role-greeting-title">Hola, Elena Vargas</h1>
+        <p class="auth-brand-subtitle" id="role-greeting-subtitle">
+          Tienes más de un rol asignado — ¿con cuál entras hoy?
+        </p>
+      </header>
+
+      <!-- Listado de tarjetas de rol (Relación N:M usuario - usuario_rol - rol) -->
+      <div class="role-card-list mb-4" id="role-cards-list">
+        <button type="button" class="role-card is-selected" data-role="ADMINISTRADOR">
+          <div class="role-card-icon">
+            <i class="ph-bold ph-gear"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-2">
+              <p class="role-card-title">Administrador</p>
+              <span class="psr-badge badge-neutral">Activo</span>
+            </div>
+            <p class="role-card-desc">Control total del sistema, sesiones, roles, reportes y auditoría</p>
+          </div>
+        </button>
+
+        <button type="button" class="role-card" data-role="RECEPCIONISTA">
+          <div class="role-card-icon">
+            <i class="ph-bold ph-users"></i>
+          </div>
+          <div class="flex-grow-1">
+            <p class="role-card-title">Recepcionista</p>
+            <p class="role-card-desc">Check-in en cola del día, cobros, asistencias y personas</p>
+          </div>
+        </button>
+
+        <button type="button" class="role-card" data-role="PROFESOR">
+          <div class="role-card-icon">
+            <i class="ph-bold ph-graduation-cap"></i>
+          </div>
+          <div class="flex-grow-1">
+            <p class="role-card-title">Profesor</p>
+            <p class="role-card-desc">Consulta de sesiones programadas y horarios de clase</p>
+          </div>
+        </button>
+
+        <button type="button" class="role-card" data-role="MIEMBRO">
+          <div class="role-card-icon">
+            <i class="ph-bold ph-user"></i>
+          </div>
+          <div class="flex-grow-1">
+            <p class="role-card-title">Miembro</p>
+            <p class="role-card-desc">Tu asistencia, turno de llegada y estado de cuenta</p>
+          </div>
+        </button>
+      </div>
+
+      <button type="button" id="btn-confirmar-rol" class="btn-psr-primary w-100 py-3 fs-6">
+        <span>Entrar con el rol seleccionado</span>
+        <i class="ph-bold ph-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <script src="../js/libs/bootstrap.bundle.min.js"></script>
+  <script src="../js/utils/config.js"></script>
+  <script src="../js/utils/sesion.js"></script>
+  <script src="../js/utils/validaciones.js"></script>
+  <script src="../js/utils/cliente-http.js"></script>
+  <script src="../js/pages/seleccionar-rol.js"></script>
+</body>
+</html>

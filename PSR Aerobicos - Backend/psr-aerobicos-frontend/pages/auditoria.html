@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auditoría de Actividad | PSR Aeróbicos</title>
+  <link rel="icon" type="image/png" href="../img/logo-psr-pestaña.png">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="mobile-topbar">
+      <span class="mobile-topbar-brand">PSR • Aeróbicos</span>
+      <button type="button" class="mobile-menu-btn" id="btn-mobile-menu" aria-label="Abrir menú">
+        <i class="ph-bold ph-list"></i>
+      </button>
+    </header>
+
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+    <aside class="app-sidebar" id="app-sidebar"></aside>
+
+    <!-- Historial de Auditoría alimentado por los Triggers de Base de Datos -->
+    <main class="app-main">
+      <div class="page-container">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">
+              <i class="ph-bold ph-shield-check"></i>
+              <span>Auditoría de Actividad</span>
+            </h1>
+            <p class="page-subtitle">
+              Bitácora de modificaciones y eliminaciones capturadas automáticamente por triggers (Solo lectura)
+            </p>
+          </div>
+
+          <button type="button" id="btn-refrescar-auditoria" class="btn-psr-secondary">
+            <i class="ph-bold ph-arrows-clockwise"></i>
+            <span>Refrescar</span>
+          </button>
+        </header>
+
+        <!-- Filtros por tabla afectada y rango de fechas -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+          <div class="filter-pills" id="auditoria-table-filters">
+            <button type="button" class="filter-pill is-active" data-table="all">Todo</button>
+            <button type="button" class="filter-pill" data-table="movimiento_cuenta">Movimientos / Pagos</button>
+            <button type="button" class="filter-pill" data-table="tarifa">Tarifa</button>
+            <button type="button" class="filter-pill" data-table="sesion">Sesiones</button>
+            <button type="button" class="filter-pill" data-table="persona">Personas</button>
+          </div>
+
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <input type="date" id="auditoria-desde" class="psr-input py-1 px-2" style="width: 145px;" aria-label="Fecha desde">
+            <span class="text-secondary small">a</span>
+            <input type="date" id="auditoria-hasta" class="psr-input py-1 px-2" style="width: 145px;" aria-label="Fecha hasta">
+          </div>
+        </div>
+
+        <!-- Listado de registros de historial_auditoria / vista_historial_cambios -->
+        <section class="audit-list" id="auditoria-records-list">
+          <!-- Evento 1: Trigger UPDATE sobre movimiento_cuenta -->
+          <article class="audit-row" data-table="movimiento_cuenta">
+            <div class="d-flex align-items-center gap-2">
+              <span class="psr-badge badge-amber">UPDATE · movimiento_cuenta</span>
+              <span class="text-secondary small">Registro #12 · monto_abonado</span>
+            </div>
+
+            <div class="audit-diff">
+              <span class="audit-old-val">$5.000</span>
+              <i class="ph-bold ph-arrow-right text-secondary"></i>
+              <span class="audit-new-val">$10.000</span>
+            </div>
+
+            <div class="text-end">
+              <span class="text-white fw-semibold small">Elena Vargas</span>
+              <span class="text-secondary small ms-2">22/11/2026 05:45 p. m.</span>
+            </div>
+          </article>
+
+          <!-- Evento 2: Trigger UPDATE sobre tarifa -->
+          <article class="audit-row" data-table="tarifa">
+            <div class="d-flex align-items-center gap-2">
+              <span class="psr-badge badge-purple">UPDATE · tarifa</span>
+              <span class="text-secondary small">Registro #1 · monto</span>
+            </div>
+
+            <div class="audit-diff">
+              <span class="audit-old-val">$4.500</span>
+              <i class="ph-bold ph-arrow-right text-secondary"></i>
+              <span class="audit-new-val">$5.000</span>
+            </div>
+
+            <div class="text-end">
+              <span class="text-white fw-semibold small">Elena Vargas</span>
+              <span class="text-secondary small ms-2">21/11/2026 04:10 p. m.</span>
+            </div>
+          </article>
+
+          <!-- Evento 3: Trigger DELETE sobre movimiento_cuenta -->
+          <article class="audit-row" data-table="movimiento_cuenta">
+            <div class="d-flex align-items-center gap-2">
+              <span class="psr-badge badge-rose">DELETE · movimiento_cuenta</span>
+              <span class="text-secondary small">Registro #8 · Eliminación de movimiento</span>
+            </div>
+
+            <div class="audit-diff">
+              <span class="audit-old-val">ABONO ($5.000)</span>
+              <i class="ph-bold ph-arrow-right text-secondary"></i>
+              <span class="audit-new-val">ELIMINADO</span>
+            </div>
+
+            <div class="text-end">
+              <span class="text-white fw-semibold small">Elena Vargas</span>
+              <span class="text-secondary small ms-2">20/11/2026 07:12 p. m.</span>
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/libs/bootstrap.bundle.min.js"></script>
+  <script src="../js/utils/config.js"></script>
+  <script src="../js/utils/sesion.js"></script>
+  <script src="../js/utils/validaciones.js"></script>
+  <script src="../js/utils/cliente-http.js"></script>
+  <script src="../js/utils/layout.js"></script>
+  <script src="../js/pages/auditoria.js"></script>
+</body>
+</html>

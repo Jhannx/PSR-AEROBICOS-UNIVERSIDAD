@@ -1,0 +1,48 @@
+:root {
+  --bg-body: #0a0a0a;
+  --bg-surface: #171717;
+  --bg-surface-alpha: rgba(23, 23, 23, 0.8);
+  --bg-elevated: #262626;
+  --bg-input: #171717;
+  --bg-input-inner: #262626;
+
+  --border-subtle: #262626;
+  --border-strong: #404040;
+
+  --text-primary: #ffffff;
+  --text-secondary: #d4d4d4;
+  --text-muted: #a3a3a3;
+  --text-dim: #737373;
+
+  --emerald-500: #10b981;
+  --emerald-400: #34d399;
+  --emerald-bg-soft: rgba(16, 185, 129, 0.12);
+  --emerald-border-soft: rgba(16, 185, 129, 0.3);
+
+  --amber-400: #fbbf24;
+  --amber-bg-soft: rgba(245, 158, 11, 0.12);
+  --amber-border-soft: rgba(245, 158, 11, 0.3);
+
+  --rose-400: #fb7185;
+  --rose-bg-soft: rgba(244, 63, 94, 0.12);
+  --rose-border-soft: rgba(244, 63, 94, 0.3);
+
+  --purple-400: #c084fc;
+  --purple-bg-soft: rgba(168, 85, 247, 0.12);
+  --purple-border-soft: rgba(168, 85, 247, 0.3);
+
+  --blue-400: #60a5fa;
+  --blue-bg-soft: rgba(59, 130, 246, 0.12);
+  --blue-border-soft: rgba(59, 130, 246, 0.3);
+
+  --font-body: "Manrope", "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Manrope", system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --sidebar-width: 240px;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-pill: 9999px;
+}

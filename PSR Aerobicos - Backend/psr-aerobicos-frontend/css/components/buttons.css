@@ -1,0 +1,167 @@
+/* Botones, filtros tipo pastilla y pestañas de navegación interna */
+
+.btn-psr-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background-color: var(--emerald-500);
+  color: #0a0a0a;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.6rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+  transition: background-color 0.15s ease, transform 0.1s ease, opacity 0.15s ease;
+}
+
+.btn-psr-primary:hover {
+  background-color: var(--emerald-400);
+  color: #0a0a0a;
+}
+
+.btn-psr-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-psr-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-psr-pill {
+  border-radius: var(--radius-pill);
+  padding: 0.45rem 0.95rem;
+  font-size: 0.78rem;
+}
+
+.btn-psr-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background-color: var(--bg-elevated);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 0.55rem 0.95rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-psr-secondary:hover {
+  background-color: #333333;
+  color: var(--text-primary);
+}
+
+.btn-psr-outline-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background-color: var(--rose-bg-soft);
+  color: var(--rose-400);
+  border: 1px solid var(--rose-border-soft);
+  border-radius: var(--radius-md);
+  padding: 0.45rem 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn-psr-outline-danger:hover {
+  background-color: rgba(244, 63, 94, 0.22);
+}
+
+.btn-icon-action {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-icon-action:hover {
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.btn-icon-action.is-danger:hover {
+  color: var(--rose-400);
+}
+
+.btn-icon-action.is-warning:hover {
+  color: var(--amber-400);
+}
+
+/* Filtros en pastilla (Recepción, Reportes, Auditoría) */
+.filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.filter-pill {
+  background-color: var(--bg-surface);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  padding: 0.4rem 0.9rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-pill:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.filter-pill.is-active {
+  background-color: var(--text-primary);
+  color: #0a0a0a;
+  border-color: var(--text-primary);
+}
+
+/* Pestañas de navegación en vistas (Reportes, Configuración, Sesiones) */
+.psr-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-subtle);
+  gap: 0.25rem;
+}
+
+.psr-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  padding: 0.65rem 1.15rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.psr-tab:hover {
+  color: var(--text-primary);
+}
+
+.psr-tab.is-active {
+  color: var(--emerald-400);
+  border-bottom-color: var(--emerald-500);
+}

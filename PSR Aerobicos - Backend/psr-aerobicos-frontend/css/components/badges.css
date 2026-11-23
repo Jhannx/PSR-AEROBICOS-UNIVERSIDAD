@@ -1,0 +1,77 @@
+/* Pastillas de estado, etiquetas de rol y contadores */
+
+.psr-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.68rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+/* Badges semánticos de estado */
+.badge-emerald {
+  background-color: var(--emerald-bg-soft);
+  border-color: var(--emerald-border-soft);
+  color: var(--emerald-400);
+}
+
+.badge-amber {
+  background-color: var(--amber-bg-soft);
+  border-color: var(--amber-border-soft);
+  color: var(--amber-400);
+}
+
+.badge-rose {
+  background-color: var(--rose-bg-soft);
+  border-color: var(--rose-border-soft);
+  color: var(--rose-400);
+}
+
+.badge-blue {
+  background-color: var(--blue-bg-soft);
+  border-color: var(--blue-border-soft);
+  color: var(--blue-400);
+}
+
+.badge-purple {
+  background-color: var(--purple-bg-soft);
+  border-color: var(--purple-border-soft);
+  color: var(--purple-400);
+}
+
+.badge-neutral {
+  background-color: var(--bg-elevated);
+  border-color: var(--border-strong);
+  color: var(--text-muted);
+}
+
+/* Botones interactivos para asignar o quitar rol en la vista de Roles y Accesos */
+.role-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.28rem 0.7rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
+  background-color: var(--bg-body);
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.role-toggle-pill:hover {
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+}
+
+.role-toggle-pill.is-assigned {
+  background-color: var(--emerald-bg-soft);
+  border-color: var(--emerald-500);
+  color: var(--emerald-400);
+}

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roles y Accesos | PSR Aeróbicos</title>
+  <link rel="icon" type="image/png" href="../img/logo-psr-pestaña.png">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="mobile-topbar">
+      <span class="mobile-topbar-brand">PSR • Aeróbicos</span>
+      <button type="button" class="mobile-menu-btn" id="btn-mobile-menu" aria-label="Abrir menú">
+        <i class="ph-bold ph-list"></i>
+      </button>
+    </header>
+
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+    <aside class="app-sidebar" id="app-sidebar"></aside>
+
+    <!-- Gestión de Usuarios y Asignación de Roles N:M -->
+    <main class="app-main">
+      <div class="page-container">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">
+              <i class="ph-bold ph-key"></i>
+              <span>Roles y Accesos</span>
+            </h1>
+            <p class="page-subtitle">
+              Crea cuentas de acceso para personas registradas y asigna o retira roles del sistema
+            </p>
+          </div>
+
+          <div>
+            <button
+              type="button"
+              class="btn-psr-primary btn-psr-pill"
+              data-bs-toggle="modal"
+              data-bs-target="#modalCrearUsuario"
+            >
+              <i class="ph-bold ph-user-gear"></i>
+              <span>Crear Cuenta a Persona</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Buscador de cuentas y personas -->
+        <div class="input-icon-wrapper">
+          <i class="ph-bold ph-magnifying-glass input-icon-left"></i>
+          <input
+            type="text"
+            id="roles-search-input"
+            class="psr-input has-icon-left py-3"
+            placeholder="Buscar usuario por nombre, apellido o número de documento..."
+            maxlength="100"
+          >
+        </div>
+
+        <div id="roles-alert-box" class="psr-alert psr-alert-success d-none" role="alert">
+          <span id="roles-alert-text">Rol asignado correctamente.</span>
+        </div>
+
+        <!-- Listado de usuarios y sus roles asignados -->
+        <section class="psr-list-card" id="roles-users-list">
+          <!-- Usuario 1: Multirol (Admin + Recepcionista) -->
+          <article class="psr-list-row" data-usuario-id="1">
+            <div class="d-flex align-items-center gap-3 min-w-0">
+              <div class="person-avatar">E</div>
+              <div class="min-w-0">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <p class="fw-bold text-white mb-0">Elena Vargas Córdoba</p>
+                  <span class="psr-badge badge-emerald">Cuenta activa</span>
+                </div>
+                <p class="small text-secondary mb-0 mt-1">
+                  <span class="font-monospace">Doc: CC 1102812345</span> · Correo: elena.vargas@psr.com
+                </p>
+              </div>
+            </div>
+
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <button type="button" class="role-toggle-pill is-assigned" data-role="ADMINISTRADOR">
+                <i class="ph-bold ph-check"></i>
+                <span>Administrador</span>
+              </button>
+              <button type="button" class="role-toggle-pill is-assigned" data-role="RECEPCIONISTA">
+                <i class="ph-bold ph-check"></i>
+                <span>Recepción</span>
+              </button>
+              <button type="button" class="role-toggle-pill" data-role="PROFESOR">
+                <i class="ph-bold ph-plus"></i>
+                <span>Profesor</span>
+              </button>
+              <button type="button" class="role-toggle-pill" data-role="MIEMBRO">
+                <i class="ph-bold ph-plus"></i>
+                <span>Miembro</span>
+              </button>
+            </div>
+          </article>
+
+          <!-- Usuario 2: Profesora -->
+          <article class="psr-list-row" data-usuario-id="2">
+            <div class="d-flex align-items-center gap-3 min-w-0">
+              <div class="person-avatar">V</div>
+              <div class="min-w-0">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <p class="fw-bold text-white mb-0">Valeria Gómez</p>
+                  <span class="psr-badge badge-emerald">Cuenta activa</span>
+                </div>
+                <p class="small text-secondary mb-0 mt-1">
+                  <span class="font-monospace">Doc: CC 1067800111</span> · Correo: valeria.gomez@psr.com
+                </p>
+              </div>
+            </div>
+
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <button type="button" class="role-toggle-pill" data-role="ADMINISTRADOR">
+                <i class="ph-bold ph-plus"></i>
+                <span>Administrador</span>
+              </button>
+              <button type="button" class="role-toggle-pill" data-role="RECEPCIONISTA">
+                <i class="ph-bold ph-plus"></i>
+                <span>Recepción</span>
+              </button>
+              <button type="button" class="role-toggle-pill is-assigned" data-role="PROFESOR">
+                <i class="ph-bold ph-check"></i>
+                <span>Profesor</span>
+              </button>
+              <button type="button" class="role-toggle-pill" data-role="MIEMBRO">
+                <i class="ph-bold ph-plus"></i>
+                <span>Miembro</span>
+              </button>
+            </div>
+          </article>
+
+          <!-- Usuario 3: Miembro -->
+          <article class="psr-list-row" data-usuario-id="3">
+            <div class="d-flex align-items-center gap-3 min-w-0">
+              <div class="person-avatar">C</div>
+              <div class="min-w-0">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <p class="fw-bold text-white mb-0">Camila Andrea Torres</p>
+                  <span class="psr-badge badge-emerald">Cuenta activa</span>
+                </div>
+                <p class="small text-secondary mb-0 mt-1">
+                  <span class="font-monospace">Doc: CC 1067890123</span> · Correo: camila.torres@correo.com
+                </p>
+              </div>
+            </div>
+
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <button type="button" class="role-toggle-pill" data-role="ADMINISTRADOR">
+                <i class="ph-bold ph-plus"></i>
+                <span>Administrador</span>
+              </button>
+              <button type="button" class="role-toggle-pill" data-role="RECEPCIONISTA">
+                <i class="ph-bold ph-plus"></i>
+                <span>Recepción</span>
+              </button>
+              <button type="button" class="role-toggle-pill" data-role="PROFESOR">
+                <i class="ph-bold ph-plus"></i>
+                <span>Profesor</span>
+              </button>
+              <button type="button" class="role-toggle-pill is-assigned" data-role="MIEMBRO">
+                <i class="ph-bold ph-check"></i>
+                <span>Miembro</span>
+              </button>
+            </div>
+          </article>
+
+          <!-- Persona sin cuenta de usuario todavía -->
+          <article class="psr-list-row" data-persona-sin-usuario="3">
+            <div class="d-flex align-items-center gap-3 min-w-0">
+              <div class="person-avatar">V</div>
+              <div class="min-w-0">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <p class="fw-bold text-white mb-0">Valentina Mendoza Pineda</p>
+                  <span class="psr-badge badge-neutral">Sin cuenta de acceso</span>
+                </div>
+                <p class="small text-secondary mb-0 mt-1">
+                  <span class="font-monospace">Doc: CC 1067954321</span> · Participante registrada en directorio
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="button"
+                class="btn-psr-secondary py-1 px-3"
+                data-bs-toggle="modal"
+                data-bs-target="#modalCrearUsuario"
+              >
+                <i class="ph-bold ph-user-plus"></i>
+                <span>Habilitar Usuario</span>
+              </button>
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Bootstrap: Crear Usuario para Persona (sp_registrar_usuario_para_persona) -->
+  <div class="modal fade" id="modalCrearUsuario" tabindex="-1" aria-labelledby="modalCrearUsuarioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content psr-modal">
+        <div class="modal-header">
+          <h2 class="modal-title" id="modalCrearUsuarioLabel">Crear Cuenta de Usuario</h2>
+          <button type="button" class="btn-close-psr" data-bs-dismiss="modal" aria-label="Cerrar">
+            <i class="ph-bold ph-x"></i>
+          </button>
+        </div>
+
+        <form id="form-crear-usuario" novalidate>
+          <div class="modal-body d-flex flex-column gap-3">
+            <div class="psr-field">
+              <label for="usuario-persona-select" class="psr-label">Persona Registrada *</label>
+              <select id="usuario-persona-select" class="psr-select" required>
+                <option value="3">Valentina Mendoza Pineda (CC 1067954321)</option>
+                <option value="5">Sebastián Castro Díaz (CC 1067811223)</option>
+              </select>
+              <p class="form-hint">Se invocará sp_registrar_usuario_para_persona asignando el rol inicial MIEMBRO.</p>
+            </div>
+
+            <div class="psr-field">
+              <label for="usuario-correo" class="psr-label">Correo Electrónico *</label>
+              <input
+                type="email"
+                id="usuario-correo"
+                class="psr-input"
+                placeholder="valentina.mendoza@correo.com"
+                maxlength="150"
+                required
+              >
+            </div>
+
+            <div class="psr-field">
+              <label for="usuario-password" class="psr-label">Contraseña de Acceso *</label>
+              <input
+                type="password"
+                id="usuario-password"
+                class="psr-input"
+                placeholder="Mínimo 6 caracteres"
+                maxlength="100"
+                required
+              >
+            </div>
+
+            <div id="modal-usuario-error" class="psr-alert psr-alert-error d-none">
+              <span>Esta persona ya cuenta con un usuario registrado.</span>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-psr-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn-psr-primary">
+              <i class="ph-bold ph-check"></i>
+              <span>Crear Usuario</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/libs/bootstrap.bundle.min.js"></script>
+  <script src="../js/utils/config.js"></script>
+  <script src="../js/utils/sesion.js"></script>
+  <script src="../js/utils/validaciones.js"></script>
+  <script src="../js/utils/cliente-http.js"></script>
+  <script src="../js/utils/layout.js"></script>
+  <script src="../js/pages/roles.js"></script>
+</body>
+</html>

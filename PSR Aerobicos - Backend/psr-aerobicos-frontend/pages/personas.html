@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personas Registradas | PSR Aeróbicos</title>
+  <link rel="icon" type="image/png" href="../img/logo-psr-pestaña.png">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="mobile-topbar">
+      <span class="mobile-topbar-brand">PSR • Aeróbicos</span>
+      <button type="button" class="mobile-menu-btn" id="btn-mobile-menu" aria-label="Abrir menú">
+        <i class="ph-bold ph-list"></i>
+      </button>
+    </header>
+
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+    <aside class="app-sidebar" id="app-sidebar"></aside>
+
+    <!-- Directorio General de Personas, Búsqueda Dinámica y Contactos de Emergencia -->
+    <main class="app-main">
+      <div class="page-container">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">
+              <i class="ph-bold ph-users"></i>
+              <span>Personas</span>
+            </h1>
+            <p class="page-subtitle" id="personas-counter-subtitle">
+              Directorio general de alumnos y miembros · <strong class="text-white">15 registrados</strong> · <strong class="text-white">14 activos</strong>
+            </p>
+          </div>
+
+          <div>
+            <button
+              type="button"
+              class="btn-psr-primary btn-psr-pill"
+              id="btn-abrir-modal-persona"
+              data-bs-toggle="modal"
+              data-bs-target="#modalPersona"
+            >
+              <i class="ph-bold ph-user-plus"></i>
+              <span>Agregar Persona</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Buscador dinámico por nombre, apellido o número de documento -->
+        <div class="input-icon-wrapper">
+          <i class="ph-bold ph-magnifying-glass input-icon-left"></i>
+          <input
+            type="text"
+            id="personas-search-input"
+            class="psr-input has-icon-left py-3"
+            placeholder="Buscar por nombre, apellido o número de documento..."
+            maxlength="100"
+          >
+        </div>
+
+        <div id="personas-alert-box" class="psr-alert psr-alert-success d-none" role="alert">
+          <span id="personas-alert-text">Persona registrada correctamente.</span>
+        </div>
+
+        <!-- Listado de personas (PersonRow) -->
+        <section class="psr-list-card" id="personas-list-container">
+          <!-- Persona 1 -->
+          <article class="psr-list-row" data-persona-id="1">
+            <div class="d-flex align-items-center gap-3 min-w-0 flex-grow-1">
+              <div class="person-avatar">C</div>
+              <div class="min-w-0">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <p class="fw-bold text-white mb-0">Camila Andrea Torres</p>
+                  <span class="psr-badge badge-emerald">Al día ($0)</span>
+                  <span class="psr-badge badge-blue">Miembro</span>
+                </div>
+                <p class="small text-secondary mb-0 mt-1">
+                  <span class="font-monospace">Doc: CC 1067890123</span> · Tel: 3004567890 · Emergencia: Luis Torres (3102223344)
+                </p>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+              <span class="psr-badge badge-neutral">Autoregistro</span>
+              <button
+                type="button"
+                class="btn-icon-action"
+                title="Editar persona"
+                data-bs-toggle="modal"
+                data-bs-target="#modalPersona"
+              >
+                <i class="ph-bold ph-pencil-simple"></i>
+              </button>
+              <button type="button" class="btn-icon-action is-warning" title="Desactivar persona">
+                <i class="ph-bold ph-user-minus"></i>
+              </button>
+            </div>
+          </article>
+
+          <!-- Persona 2 -->
+          <article class="psr-list-row" data-persona-id="2">
+            <div class="d-flex align-items-center gap-3 min-w-0 flex-grow-1">
+              <div class="person-avatar">M</div>
+              <div class="min-w-0">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <p class="fw-bold text-white mb-0">Mateo Hernández Ruiz</p>
+                  <span class="psr-badge badge-blue">Saldo a favor (+$15.000)</span>
+                  <span class="psr-badge badge-blue">Miembro</span>
+                </div>
+                <p class="small text-secondary mb-0 mt-1">
+                  <span class="font-monospace">Doc: CC 1067912345</span> · Tel: 3115678901 · Emergencia: Marta Ruiz (3128889900)
+                </p>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+              <span class="psr-badge badge-neutral">Admin</span>
+              <button
+                type="button"
+                class="btn-icon-action"
+                title="Editar persona"
+                data-bs-toggle="modal"
+                data-bs-target="#modalPersona"
+              >
+                <i class="ph-bold ph-pencil-simple"></i>
+              </button>
+              <button type="button" class="btn-icon-action is-warning" title="Desactivar persona">
+                <i class="ph-bold ph-user-minus"></i>
+              </button>
+            </div>
+          </article>
+
+          <!-- Persona 3 -->
+          <article class="psr-list-row" data-persona-id="3">
+            <div class="d-flex align-items-center gap-3 min-w-0 flex-grow-1">
+              <div class="person-avatar">V</div>
+              <div class="min-w-0">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <p class="fw-bold text-white mb-0">Valentina Mendoza Pineda</p>
+                  <span class="psr-badge badge-rose">Debe (-$5.000)</span>
+                </div>
+                <p class="small text-secondary mb-0 mt-1">
+                  <span class="font-monospace">Doc: CC 1067954321</span> · Tel: 3156789012 · Emergencia: Jorge Mendoza (3151112233)
+                </p>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+              <span class="psr-badge badge-neutral">Admin</span>
+              <button
+                type="button"
+                class="btn-icon-action"
+                title="Editar persona"
+                data-bs-toggle="modal"
+                data-bs-target="#modalPersona"
+              >
+                <i class="ph-bold ph-pencil-simple"></i>
+              </button>
+              <button type="button" class="btn-icon-action is-warning" title="Desactivar persona">
+                <i class="ph-bold ph-user-minus"></i>
+              </button>
+            </div>
+          </article>
+
+          <!-- Persona 4 (Staff multirol) -->
+          <article class="psr-list-row" data-persona-id="4">
+            <div class="d-flex align-items-center gap-3 min-w-0 flex-grow-1">
+              <div class="person-avatar">E</div>
+              <div class="min-w-0">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <p class="fw-bold text-white mb-0">Elena Vargas Córdoba</p>
+                  <span class="psr-badge badge-purple">Administrador</span>
+                  <span class="psr-badge badge-emerald">Recepción</span>
+                </div>
+                <p class="small text-secondary mb-0 mt-1">
+                  <span class="font-monospace">Doc: CC 1102812345</span> · Tel: 3012345678 · Correo: elena.vargas@psr.com
+                </p>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+              <span class="psr-badge badge-neutral">Admin</span>
+              <button
+                type="button"
+                class="btn-icon-action"
+                title="Editar persona"
+                data-bs-toggle="modal"
+                data-bs-target="#modalPersona"
+              >
+                <i class="ph-bold ph-pencil-simple"></i>
+              </button>
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Bootstrap: Agregar / Editar Persona con Contacto de Emergencia (Transacción 2 tablas) -->
+  <div class="modal fade" id="modalPersona" tabindex="-1" aria-labelledby="modalPersonaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content psr-modal">
+        <div class="modal-header">
+          <h2 class="modal-title" id="modalPersonaLabel">Agregar Persona</h2>
+          <button type="button" class="btn-close-psr" data-bs-dismiss="modal" aria-label="Cerrar">
+            <i class="ph-bold ph-x"></i>
+          </button>
+        </div>
+
+        <form id="form-persona" novalidate>
+          <input type="hidden" id="persona-id-hidden" value="">
+          <div class="modal-body d-flex flex-column gap-3">
+            <div class="row g-2">
+              <div class="col-6">
+                <div class="psr-field">
+                  <label for="persona-nombre" class="psr-label">Nombres *</label>
+                  <input
+                    type="text"
+                    id="persona-nombre"
+                    class="psr-input"
+                    placeholder="Rosa"
+                    maxlength="100"
+                    required
+                  >
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="psr-field">
+                  <label for="persona-apellidos" class="psr-label">Apellidos *</label>
+                  <input
+                    type="text"
+                    id="persona-apellidos"
+                    class="psr-input"
+                    placeholder="Martínez López"
+                    maxlength="100"
+                    required
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-4">
+                <div class="psr-field">
+                  <label for="persona-tipo-doc" class="psr-label">Tipo Doc. *</label>
+                  <select id="persona-tipo-doc" class="psr-select" required>
+                    <option value="CC">CC</option>
+                    <option value="TI">TI</option>
+                    <option value="CE">CE</option>
+                    <option value="PA">PA</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-8">
+                <div class="psr-field">
+                  <label for="persona-documento" class="psr-label">No. Documento *</label>
+                  <input
+                    type="text"
+                    id="persona-documento"
+                    class="psr-input"
+                    inputmode="numeric"
+                    placeholder="1001234567"
+                    maxlength="20"
+                    required
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-6">
+                <div class="psr-field">
+                  <label for="persona-telefono" class="psr-label">Teléfono *</label>
+                  <input
+                    type="text"
+                    id="persona-telefono"
+                    class="psr-input"
+                    inputmode="numeric"
+                    placeholder="3001234567"
+                    maxlength="20"
+                    required
+                  >
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="psr-field">
+                  <label for="persona-fecha-nac" class="psr-label">Fecha de Nacimiento *</label>
+                  <input
+                    type="date"
+                    id="persona-fecha-nac"
+                    class="psr-input"
+                    required
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Datos del Contacto de Emergencia (sp_crear_persona_con_contacto) -->
+            <div class="pt-2 border-top" style="border-color: var(--border-subtle) !important;">
+              <p class="psr-label mb-2 d-flex align-items-center gap-2">
+                <i class="ph-bold ph-first-aid-kit" style="color: var(--emerald-400);"></i>
+                <span>Contacto de Emergencia (Relación 1:1)</span>
+              </p>
+
+              <div class="row g-2">
+                <div class="col-6">
+                  <div class="psr-field">
+                    <label for="contacto-nombre" class="psr-label">Nombre Contacto *</label>
+                    <input
+                      type="text"
+                      id="contacto-nombre"
+                      class="psr-input"
+                      placeholder="María López"
+                      maxlength="100"
+                      required
+                    >
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="psr-field">
+                    <label for="contacto-telefono" class="psr-label">Teléfono Contacto *</label>
+                    <input
+                      type="text"
+                      id="contacto-telefono"
+                      class="psr-input"
+                      inputmode="numeric"
+                      placeholder="3009876543"
+                      maxlength="20"
+                      required
+                    >
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="psr-field">
+                    <label for="contacto-observaciones" class="psr-label">Observaciones / Parentesco</label>
+                    <input
+                      type="text"
+                      id="contacto-observaciones"
+                      class="psr-input"
+                      placeholder="Madre · Sin restricciones médicas"
+                      maxlength="255"
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="modal-persona-error" class="psr-alert psr-alert-error d-none">
+              <span id="modal-persona-error-text">Completa todos los campos obligatorios.</span>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-psr-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" id="btn-guardar-persona" class="btn-psr-primary">
+              <i class="ph-bold ph-floppy-disk"></i>
+              <span>Guardar Persona</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/libs/bootstrap.bundle.min.js"></script>
+  <script src="../js/utils/config.js"></script>
+  <script src="../js/utils/sesion.js"></script>
+  <script src="../js/utils/validaciones.js"></script>
+  <script src="../js/utils/cliente-http.js"></script>
+  <script src="../js/utils/layout.js"></script>
+  <script src="../js/pages/personas.js"></script>
+</body>
+</html>

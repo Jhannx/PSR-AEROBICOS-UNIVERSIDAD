@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Miembro | PSR Aeróbicos</title>
+  <link rel="icon" type="image/png" href="../img/logo-psr-pestaña.png">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="mobile-topbar">
+      <span class="mobile-topbar-brand">PSR • Aeróbicos</span>
+      <button type="button" class="mobile-menu-btn" id="btn-mobile-menu" aria-label="Abrir menú">
+        <i class="ph-bold ph-list"></i>
+      </button>
+    </header>
+
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+    <aside class="app-sidebar" id="app-sidebar"></aside>
+
+    <!-- Panel del Participante / Miembro: Estado de Cuenta, Check-in y Contacto de Emergencia -->
+    <main class="app-main">
+      <div class="page-container" style="max-width: 52rem;">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">
+              <i class="ph-bold ph-user-check"></i>
+              <span>Mi Estado y Asistencia</span>
+            </h1>
+            <p class="page-subtitle">
+              Panel de miembro · Consulta tu saldo, marca tu llegada hoy y verifica tu contacto de emergencia
+            </p>
+          </div>
+        </header>
+
+        <div class="row g-3">
+          <!-- Columna 1: Tarjeta de Perfil, Estado de Pago y Marcación de Llegada -->
+          <div class="col-12 col-lg-7">
+            <section class="psr-card text-center d-flex flex-column gap-3">
+              <div>
+                <div class="member-avatar-lg" id="miembro-avatar-initials">CT</div>
+                <h2 class="fs-4 fw-bold text-white mb-1" id="miembro-nombre-completo">Camila Andrea Torres</h2>
+                <p class="small text-secondary font-monospace mb-1" id="miembro-documento-label">
+                  Doc: CC 1067890123 · Tel: 3004567890
+                </p>
+                <p class="small text-secondary mb-0">
+                  <i class="ph-bold ph-cake"></i>
+                  <span id="miembro-fecha-nacimiento">14 de mayo de 1999</span>
+                </p>
+              </div>
+
+              <div>
+                <span class="psr-badge badge-emerald py-2 px-3 fs-6" id="miembro-estado-cuenta-badge">
+                  <i class="ph-bold ph-check-circle"></i>
+                  <span>Cuenta al día · Saldo: $0</span>
+                </span>
+              </div>
+
+              <!-- Resumen de sesiones pagadas por adelantado y tarifa -->
+              <div class="row g-2 text-start">
+                <div class="col-6">
+                  <div class="credit-sessions-box">
+                    <p class="small text-secondary mb-1">Sesiones a Favor</p>
+                    <p class="fs-4 fw-bold text-white mb-0" id="miembro-sesiones-favor">0</p>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="credit-sessions-box">
+                    <p class="small text-secondary mb-1">Tarifa por Sesión</p>
+                    <p class="fs-4 fw-bold mb-0" style="color: var(--emerald-400);" id="miembro-tarifa-hoy">$5.000</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Acción principal: Marcar llegada a la sesión activa -->
+              <div class="pt-2">
+                <button type="button" id="btn-miembro-checkin" class="btn-psr-primary w-100 py-3 fs-6">
+                  <i class="ph-bold ph-hand-pointing"></i>
+                  <span>Marcar mi llegada a la clase de hoy</span>
+                </button>
+                <p class="form-hint mt-2" id="miembro-turno-feedback">
+                  Al marcar tu llegada recibirás tu número de turno en la fila de recepción.
+                </p>
+              </div>
+            </section>
+          </div>
+
+          <!-- Columna 2: Turno en Fila de Espera y Contacto de Emergencia -->
+          <div class="col-12 col-lg-5 d-flex flex-column gap-3">
+            <!-- Tarjeta de Turno Actual (vista_fila_espera) -->
+            <section class="psr-card d-flex flex-column gap-2">
+              <div class="d-flex align-items-center justify-content-between">
+                <h3 class="fs-6 fw-bold text-white mb-0">Tu Turno Hoy</h3>
+                <span class="psr-badge badge-amber" id="miembro-turno-estado">En espera</span>
+              </div>
+              <div class="d-flex align-items-center gap-3 py-2">
+                <div class="person-avatar fs-5" style="width: 3.25rem; height: 3.25rem;" id="miembro-turno-posicion">#1</div>
+                <div>
+                  <p class="fw-bold text-white mb-0">Sesión 06:00 p. m. – 07:00 p. m.</p>
+                  <p class="small text-secondary mb-0">Llegada registrada a las 05:52 p. m.</p>
+                </div>
+              </div>
+            </section>
+
+            <!-- Tarjeta de Contacto de Emergencia (Relación 1:1) -->
+            <section class="psr-card d-flex flex-column gap-3">
+              <div class="d-flex align-items-center justify-content-between">
+                <h3 class="fs-6 fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                  <i class="ph-bold ph-phone-call" style="color: var(--emerald-400);"></i>
+                  <span>Contacto de Emergencia</span>
+                </h3>
+                <span class="psr-badge badge-neutral">1 : 1</span>
+              </div>
+
+              <div class="psr-field">
+                <label for="miembro-contacto-nombre" class="psr-label">Nombre Completo</label>
+                <input
+                  type="text"
+                  id="miembro-contacto-nombre"
+                  class="psr-input"
+                  value="Luis Torres"
+                  maxlength="100"
+                >
+              </div>
+
+              <div class="psr-field">
+                <label for="miembro-contacto-telefono" class="psr-label">Teléfono</label>
+                <input
+                  type="text"
+                  id="miembro-contacto-telefono"
+                  class="psr-input"
+                  inputmode="numeric"
+                  value="3102223344"
+                  maxlength="20"
+                >
+              </div>
+
+              <div class="psr-field">
+                <label for="miembro-contacto-obs" class="psr-label">Parentesco / Observaciones</label>
+                <input
+                  type="text"
+                  id="miembro-contacto-obs"
+                  class="psr-input"
+                  value="Padre · Sin alergias"
+                  maxlength="255"
+                >
+              </div>
+
+              <button type="button" id="btn-guardar-contacto-miembro" class="btn-psr-secondary w-100">
+                <i class="ph-bold ph-floppy-disk"></i>
+                <span>Actualizar Contacto</span>
+              </button>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/libs/bootstrap.bundle.min.js"></script>
+  <script src="../js/utils/config.js"></script>
+  <script src="../js/utils/sesion.js"></script>
+  <script src="../js/utils/validaciones.js"></script>
+  <script src="../js/utils/cliente-http.js"></script>
+  <script src="../js/utils/layout.js"></script>
+  <script src="../js/pages/miembro.js"></script>
+</body>
+</html>
