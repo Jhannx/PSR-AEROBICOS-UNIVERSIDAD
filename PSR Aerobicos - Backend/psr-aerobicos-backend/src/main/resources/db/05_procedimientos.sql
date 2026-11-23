@@ -65,6 +65,11 @@ BEGIN
         SET MESSAGE_TEXT = 'La persona especificada no existe en el sistema';
     END IF;
 
+    IF p_password_hash IS NULL OR p_password_hash = '' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Se requiere una contrasena cifrada';
+    END IF;
+
     IF EXISTS (SELECT 1 FROM usuario WHERE persona_id = p_persona_id) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'La persona ya tiene una cuenta de usuario asignada';
@@ -202,6 +207,8 @@ CREATE PROCEDURE sp_registrar_movimiento(
     IN p_monto_recibido DECIMAL(10, 2),
     IN p_monto_abonado DECIMAL(10, 2),
     IN p_metodo_pago VARCHAR(20),
+    IN p_tipo_movimiento VARCHAR(20),
+    IN p_vuelto_entregado BOOLEAN,
     IN p_usuario_id INT,
     IN p_nota TEXT,
     OUT p_movimiento_id INT
@@ -212,12 +219,22 @@ BEGIN
         SET MESSAGE_TEXT = 'La persona no existe o esta inactiva';
     END IF;
 
+    IF p_tipo_movimiento IS NULL OR p_tipo_movimiento NOT IN ('ABONO', 'REEMBOLSO') THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'El tipo de movimiento no es valido';
+    END IF;
+
+    IF p_vuelto_entregado IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Debe indicarse si se entrego el vuelto';
+    END IF;
+
     INSERT INTO movimiento_cuenta (
         persona_id, llegada_id, monto_recibido, monto_abonado,
         metodo_pago, tipo_movimiento, vuelto_entregado, usuario_id, nota
     ) VALUES (
         p_persona_id, p_llegada_id, p_monto_recibido, p_monto_abonado,
-        IFNULL(p_metodo_pago, 'EFECTIVO'), 'ABONO', TRUE, p_usuario_id, p_nota
+        IFNULL(p_metodo_pago, 'EFECTIVO'), p_tipo_movimiento, p_vuelto_entregado, p_usuario_id, p_nota
     );
 
     SET p_movimiento_id = LAST_INSERT_ID();
@@ -322,7 +339,7 @@ DELIMITER ;
 
 /*
 10. sp_crear_persona_con_contacto
-Inserta una persona y su contacto de emergencia dentro de una transaccion con COMMIT y ROLLBACK.
+Inserta persona y contacto, y llama a sp_registrar_usuario_para_persona dentro de una transaccion con COMMIT y ROLLBACK.
 */
 DROP PROCEDURE IF EXISTS sp_crear_persona_con_contacto;
 
@@ -334,32 +351,58 @@ CREATE PROCEDURE sp_crear_persona_con_contacto(
     IN p_nombre VARCHAR(100),
     IN p_apellidos VARCHAR(100),
     IN p_telefono VARCHAR(20),
+    IN p_fecha_nac DATE,
+    IN p_obs_salud TEXT,
+    IN p_fuente VARCHAR(20),
     IN p_contacto_nom VARCHAR(150),
     IN p_contacto_tel VARCHAR(20),
     IN p_contacto_obs TEXT,
-    OUT p_resultado VARCHAR(120)
+    IN p_correo VARCHAR(150),
+    IN p_password_hash VARCHAR(255),
+    OUT p_persona_id INT,
+    OUT p_usuario_id INT
 )
 BEGIN
-    DECLARE v_persona_id INT;
-
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         ROLLBACK;
-        SET p_resultado = 'ERROR: Transaccion revertida con ROLLBACK';
+        RESIGNAL;
     END;
 
+    IF p_fuente IS NULL OR p_fuente NOT IN ('ADMIN', 'AUTOREGISTRO') THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'La fuente de registro no es valida';
+    END IF;
+
+    IF p_password_hash IS NULL OR p_password_hash = '' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'La creacion de usuario requiere una contrasena cifrada';
+    END IF;
+
+    SET p_usuario_id = NULL;
     START TRANSACTION;
 
-    INSERT INTO persona (tipo_documento, numero_documento, nombre, apellidos, telefono, fuente_registro)
-    VALUES (p_tipo_doc, p_num_doc, p_nombre, p_apellidos, p_telefono, 'ADMIN');
+    INSERT INTO persona (
+        tipo_documento, numero_documento, nombre, apellidos, telefono,
+        fecha_nacimiento, observaciones_salud, fuente_registro
+    ) VALUES (
+        p_tipo_doc, p_num_doc, p_nombre, p_apellidos, p_telefono,
+        p_fecha_nac, p_obs_salud, p_fuente
+    );
 
-    SET v_persona_id = LAST_INSERT_ID();
+    SET p_persona_id = LAST_INSERT_ID();
 
     INSERT INTO contacto_emergencia (persona_id, nombre, telefono, observaciones)
-    VALUES (v_persona_id, p_contacto_nom, p_contacto_tel, p_contacto_obs);
+    VALUES (p_persona_id, p_contacto_nom, p_contacto_tel, p_contacto_obs);
+
+    CALL sp_registrar_usuario_para_persona(
+        p_persona_id,
+        p_password_hash,
+        p_correo,
+        p_usuario_id
+    );
 
     COMMIT;
-    SET p_resultado = CONCAT('OK: Persona creada con ID ', v_persona_id);
 END //
 
 DELIMITER ;
