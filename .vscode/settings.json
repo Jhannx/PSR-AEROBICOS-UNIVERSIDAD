@@ -5,6 +5,7 @@
     ],
     "python.autoComplete.extraPaths": [
         "C:\\Users\\jhanp\\AppData\\Roaming\\Python\\Python314\\site-packages"
-    ]
+    ],
+    "java.compile.nullAnalysis.mode": "automatic"
 }
 
