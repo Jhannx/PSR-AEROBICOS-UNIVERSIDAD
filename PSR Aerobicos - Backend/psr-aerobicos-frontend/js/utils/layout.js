@@ -10,17 +10,20 @@ document.addEventListener("DOMContentLoaded", function () {
     return;
   }
 
+  if (typeof SesionPSR === "undefined" || !SesionPSR.estaAutenticado()) {
+    window.location.href = "../index.html";
+    return;
+  }
+
   const rutaActual = window.location.pathname.split("/").pop() || "recepcion.html";
-  const usuarioActual = typeof SesionPSR !== "undefined"
-    ? SesionPSR.obtenerUsuarioOPorDefecto()
-    : { nombreCompleto: "Elena Vargas", roles: ["ADMINISTRADOR", "RECEPCIONISTA"] };
-
-  const rolActivo = typeof SesionPSR !== "undefined"
-    ? SesionPSR.obtenerRolActivo()
-    : "ADMINISTRADOR";
-
-  const infoRol = PSR_CONFIG.ROLES[rolActivo] || PSR_CONFIG.ROLES.ADMINISTRADOR;
-  const itemsMenu = PSR_CONFIG.NAV_BY_ROLE[rolActivo] || PSR_CONFIG.NAV_BY_ROLE.ADMINISTRADOR;
+  const usuarioActual = SesionPSR.obtenerUsuario();
+  const rolActivo = SesionPSR.obtenerRolActivo();
+  const infoRol = PSR_CONFIG.ROLES[rolActivo];
+  const itemsMenu = PSR_CONFIG.NAV_BY_ROLE[rolActivo];
+  if (!infoRol || !itemsMenu) {
+    SesionPSR.cerrarSesion("../index.html");
+    return;
+  }
 
   const nombreMostrar = usuarioActual.nombreCompleto || usuarioActual.nombre || "Usuario";
   const iniciales = typeof SesionPSR !== "undefined"
@@ -61,9 +64,9 @@ document.addEventListener("DOMContentLoaded", function () {
     '<div class="sidebar-footer">' +
       '<div class="sidebar-user-row">' +
         '<div class="sidebar-user-info">' +
-          '<div class="sidebar-avatar">' + iniciales + '</div>' +
+          '<div class="sidebar-avatar"></div>' +
           '<div class="sidebar-user-meta">' +
-            '<p class="sidebar-user-name" title="' + nombreMostrar + '">' + nombreMostrar + '</p>' +
+            '<p class="sidebar-user-name"></p>' +
             badgeRolHtml +
           '</div>' +
         '</div>' +
@@ -72,6 +75,11 @@ document.addEventListener("DOMContentLoaded", function () {
         '</button>' +
       '</div>' +
     '</div>';
+
+  sidebarContainer.querySelector(".sidebar-avatar").textContent = iniciales;
+  const nombreEnSidebar = sidebarContainer.querySelector(".sidebar-user-name");
+  nombreEnSidebar.textContent = nombreMostrar;
+  nombreEnSidebar.title = nombreMostrar;
 
   const btnLogout = document.getElementById("btn-sidebar-logout");
   if (btnLogout) {

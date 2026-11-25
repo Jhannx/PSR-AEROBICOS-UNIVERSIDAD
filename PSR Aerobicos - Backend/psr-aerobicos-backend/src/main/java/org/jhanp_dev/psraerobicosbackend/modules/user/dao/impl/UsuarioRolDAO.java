@@ -2,7 +2,6 @@ package org.jhanp_dev.psraerobicosbackend.modules.user.dao.impl;
 
 import org.jhanp_dev.psraerobicosbackend.config.database.ConexionDB;
 import org.jhanp_dev.psraerobicosbackend.modules.user.dao.interfaces.IUsuarioRolDAO;
-import org.jhanp_dev.psraerobicosbackend.modules.user.dto.request.UsuarioRolRequestDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.user.dto.response.UsuarioRolResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.user.entity.UsuarioRol;
 import org.jhanp_dev.psraerobicosbackend.modules.user.mapper.UsuarioRolMapper;
@@ -13,7 +12,7 @@ import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.Types;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,11 +21,9 @@ import java.util.Optional;
 @Repository
 public class UsuarioRolDAO implements IUsuarioRolDAO {
 
-    private final Connection conexion;
     private final UsuarioRolMapper usuarioRolMapper;
 
-    public UsuarioRolDAO(UsuarioRolMapper usuarioRolMapper) throws SQLException {
-        this.conexion = ConexionDB.getConexion();
+    public UsuarioRolDAO(UsuarioRolMapper usuarioRolMapper) {
         this.usuarioRolMapper = usuarioRolMapper;
     }
 
@@ -40,7 +37,8 @@ public class UsuarioRolDAO implements IUsuarioRolDAO {
         String sql = BASE_SELECT + " ORDER BY id ASC";
         List<UsuarioRolResponseDTO> lista = new ArrayList<>();
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 UsuarioRol entidad = mapearFila(rs);
@@ -56,7 +54,8 @@ public class UsuarioRolDAO implements IUsuarioRolDAO {
     public Optional<UsuarioRolResponseDTO> obtenerPorId(Integer id) {
         String sql = BASE_SELECT + " WHERE id = ?";
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -75,7 +74,8 @@ public class UsuarioRolDAO implements IUsuarioRolDAO {
         String sql = BASE_SELECT + " WHERE usuario_id = ? ORDER BY id ASC";
         List<UsuarioRolResponseDTO> lista = new ArrayList<>();
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setInt(1, usuarioId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -90,28 +90,25 @@ public class UsuarioRolDAO implements IUsuarioRolDAO {
     }
 
     @Override
-    public UsuarioRolResponseDTO guardar(UsuarioRolRequestDTO dto) {
-        UsuarioRol usuarioRol = usuarioRolMapper.aEntidad(dto);
-        String sql = "INSERT INTO usuario_rol (usuario_id, rol_id) VALUES (?, ?)";
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setInt(1, usuarioRol.getUsuarioId());
-            stmt.setInt(2, usuarioRol.getRolId());
-            stmt.executeUpdate();
-            try (ResultSet keys = stmt.getGeneratedKeys()) {
-                if (keys.next()) {
-                    usuarioRol.setId(keys.getInt(1));
-                }
+    public boolean existeAsignacion(Integer usuarioId, String rolNombre) {
+        String sql = "SELECT 1 FROM usuario_rol ur JOIN rol r ON r.id = ur.rol_id "
+                + "WHERE ur.usuario_id = ? AND r.nombre = ? LIMIT 1";
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, usuarioId);
+            stmt.setString(2, rolNombre);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
             }
         } catch (SQLException e) {
-            throw new IllegalStateException("Error al guardar usuario_rol: " + e.getMessage(), e);
+            throw new IllegalStateException("Error al validar la asignación del rol", e);
         }
-        return usuarioRolMapper.aResponseDTO(usuarioRol);
     }
 
     @Override
     public void asignar(Integer usuarioId, String rolNombre) {
-        try (CallableStatement stmt = conexion.prepareCall("{CALL sp_asignar_rol(?, ?)}")) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             CallableStatement stmt = conexion.prepareCall("{CALL sp_asignar_rol(?, ?)}")) {
             stmt.setInt(1, usuarioId);
             stmt.setString(2, rolNombre);
             stmt.execute();
@@ -122,41 +119,15 @@ public class UsuarioRolDAO implements IUsuarioRolDAO {
 
     @Override
     public boolean retirar(Integer usuarioId, String rolNombre) {
-        String sql = "DELETE ur FROM usuario_rol ur JOIN rol r ON r.id = ur.rol_id WHERE ur.usuario_id = ? AND r.nombre = ?";
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             CallableStatement stmt = conexion.prepareCall("{CALL sp_retirar_rol(?, ?, ?)}")) {
             stmt.setInt(1, usuarioId);
             stmt.setString(2, rolNombre);
-            return stmt.executeUpdate() > 0;
+            stmt.registerOutParameter(3, Types.BOOLEAN);
+            stmt.execute();
+            return stmt.getBoolean(3);
         } catch (SQLException e) {
-            throw new IllegalStateException("Error al retirar rol: " + e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public boolean actualizar(Integer id, UsuarioRolRequestDTO dto) {
-        UsuarioRol usuarioRol = usuarioRolMapper.aEntidad(dto);
-        usuarioRol.setId(id);
-        String sql = "UPDATE usuario_rol SET usuario_id = ?, rol_id = ? WHERE id = ?";
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
-            stmt.setInt(1, usuarioRol.getUsuarioId());
-            stmt.setInt(2, usuarioRol.getRolId());
-            stmt.setInt(3, usuarioRol.getId());
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            throw new IllegalStateException("Error al actualizar usuario_rol: " + e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public boolean eliminar(Integer id) {
-        String sql = "DELETE FROM usuario_rol WHERE id = ?";
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            throw new IllegalStateException("Error al eliminar usuario_rol: " + e.getMessage(), e);
+            throw new IllegalStateException("Error al retirar rol", e);
         }
     }
 

@@ -34,6 +34,10 @@
           </div>
         </header>
 
+        <div id="reportes-alert-box" class="psr-alert psr-alert-error d-none" role="alert">
+          <span>No fue posible cargar la información del reporte.</span>
+        </div>
+
         <!-- Pestañas principales de Reportes -->
         <nav class="psr-tabs" id="reportes-tabs">
           <button type="button" class="psr-tab is-active" data-tab="resumen">
@@ -69,8 +73,8 @@
               <span>Asistentes Confirmados</span>
               <i class="ph-bold ph-users"></i>
             </p>
-            <p class="kpi-value" id="rep-kpi-asistentes">24</p>
-            <p class="kpi-subtext">Promedio por sesión: 12 personas</p>
+            <p class="kpi-value" id="rep-kpi-asistentes">0</p>
+            <p class="kpi-subtext" id="rep-kpi-asistentes-sub">Sesiones evaluadas en el periodo</p>
           </div>
 
           <div class="kpi-card">
@@ -78,8 +82,8 @@
               <span>Recaudo Total</span>
               <i class="ph-bold ph-coins"></i>
             </p>
-            <p class="kpi-value is-emerald" id="rep-kpi-recaudo">$120.000</p>
-            <p class="kpi-subtext">Promedio por sesión: $60.000</p>
+            <p class="kpi-value is-emerald" id="rep-kpi-recaudo">$0</p>
+            <p class="kpi-subtext" id="rep-kpi-recaudo-sub">Consolidado de vista_recaudo_diario</p>
           </div>
 
           <div class="kpi-card">
@@ -87,8 +91,8 @@
               <span>Método Más Usado</span>
               <i class="ph-bold ph-money"></i>
             </p>
-            <p class="kpi-value" id="rep-kpi-metodo">EFECTIVO</p>
-            <p class="kpi-subtext">72% de las transacciones</p>
+            <p class="kpi-value" id="rep-kpi-metodo">—</p>
+            <p class="kpi-subtext" id="rep-kpi-metodo-sub">Sin transacciones registradas</p>
           </div>
 
           <div class="kpi-card">
@@ -96,8 +100,8 @@
               <span>Participante Frecuente</span>
               <i class="ph-bold ph-trophy"></i>
             </p>
-            <p class="kpi-value fs-5" id="rep-kpi-frecuente">Camila Torres</p>
-            <p class="kpi-subtext">14 asistencias en el periodo</p>
+            <p class="kpi-value fs-5" id="rep-kpi-frecuente">—</p>
+            <p class="kpi-subtext" id="rep-kpi-frecuente-sub">Mayor asistencia acumulada</p>
           </div>
         </section>
 
@@ -106,38 +110,38 @@
           <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div>
               <h2 class="fs-6 fw-bold text-white mb-0">Comportamiento Semanal de Asistencia</h2>
-              <p class="small text-secondary mb-0">Promedio de participantes por día de la semana</p>
+              <p class="small text-secondary mb-0">Participantes acumulados por día de la semana</p>
             </div>
             <span class="psr-badge badge-emerald">Programa Aeróbicos</span>
           </div>
 
           <div class="weekly-bars-grid" id="reportes-weekly-bars">
             <div class="weekly-bar-col">
-              <div class="weekly-bar-track"><div class="weekly-bar-fill" style="height: 85%;"></div></div>
+              <div class="weekly-bar-track"><div class="weekly-bar-fill" data-day-bar="LUN" style="height: 0%;"></div></div>
               <span class="weekly-bar-label">Lun</span>
             </div>
             <div class="weekly-bar-col">
-              <div class="weekly-bar-track"><div class="weekly-bar-fill" style="height: 60%;"></div></div>
+              <div class="weekly-bar-track"><div class="weekly-bar-fill" data-day-bar="MAR" style="height: 0%;"></div></div>
               <span class="weekly-bar-label">Mar</span>
             </div>
             <div class="weekly-bar-col">
-              <div class="weekly-bar-track"><div class="weekly-bar-fill" style="height: 92%;"></div></div>
+              <div class="weekly-bar-track"><div class="weekly-bar-fill" data-day-bar="MIE" style="height: 0%;"></div></div>
               <span class="weekly-bar-label">Mié</span>
             </div>
             <div class="weekly-bar-col">
-              <div class="weekly-bar-track"><div class="weekly-bar-fill" style="height: 55%;"></div></div>
+              <div class="weekly-bar-track"><div class="weekly-bar-fill" data-day-bar="JUE" style="height: 0%;"></div></div>
               <span class="weekly-bar-label">Jue</span>
             </div>
             <div class="weekly-bar-col">
-              <div class="weekly-bar-track"><div class="weekly-bar-fill" style="height: 78%;"></div></div>
+              <div class="weekly-bar-track"><div class="weekly-bar-fill" data-day-bar="VIE" style="height: 0%;"></div></div>
               <span class="weekly-bar-label">Vie</span>
             </div>
             <div class="weekly-bar-col">
-              <div class="weekly-bar-track"><div class="weekly-bar-fill" style="height: 45%;"></div></div>
+              <div class="weekly-bar-track"><div class="weekly-bar-fill" data-day-bar="SAB" style="height: 0%;"></div></div>
               <span class="weekly-bar-label">Sáb</span>
             </div>
             <div class="weekly-bar-col">
-              <div class="weekly-bar-track"><div class="weekly-bar-fill" style="height: 30%;"></div></div>
+              <div class="weekly-bar-track"><div class="weekly-bar-fill" data-day-bar="DOM" style="height: 0%;"></div></div>
               <span class="weekly-bar-label">Dom</span>
             </div>
           </div>
@@ -147,7 +151,7 @@
         <section class="d-flex flex-column gap-2">
           <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
             <h2 class="fs-6 fw-bold text-white mb-0" id="reportes-table-title">
-              Detalle de Recaudo y Sesiones (vista_recaudo_diario)
+              Detalle de Recaudo Diario (vista_recaudo_diario)
             </h2>
 
             <div class="d-flex align-items-center gap-2">
@@ -164,41 +168,20 @@
               <thead>
                 <tr>
                   <th>Fecha</th>
-                  <th>Sesión</th>
-                  <th>Profesor(a)</th>
-                  <th>Asistentes</th>
+                  <th>Total Pagos</th>
                   <th>Total Recaudado</th>
-                  <th>Estado</th>
+                  <th>Promedio por Pago</th>
                 </tr>
               </thead>
               <tbody id="reportes-table-body">
                 <tr>
-                  <td>22/11/2026</td>
-                  <td class="font-monospace">Sesión #14 (06:00 p. m.)</td>
-                  <td class="text-white fw-semibold">Valeria Gómez</td>
-                  <td>9</td>
-                  <td class="fw-bold" style="color: var(--emerald-400);">$45.000</td>
-                  <td><span class="psr-badge badge-emerald">En curso</span></td>
-                </tr>
-                <tr>
-                  <td>21/11/2026</td>
-                  <td class="font-monospace">Sesión #13 (06:00 p. m.)</td>
-                  <td class="text-white fw-semibold">Valeria Gómez</td>
-                  <td>15</td>
-                  <td class="fw-bold" style="color: var(--emerald-400);">$75.000</td>
-                  <td><span class="psr-badge badge-neutral">Finalizada</span></td>
-                </tr>
-                <tr>
-                  <td>20/11/2026</td>
-                  <td class="font-monospace">Sesión #12 (06:00 p. m.)</td>
-                  <td class="text-white fw-semibold">Andrés Morales</td>
-                  <td>12</td>
-                  <td class="fw-bold" style="color: var(--emerald-400);">$60.000</td>
-                  <td><span class="psr-badge badge-neutral">Finalizada</span></td>
+                  <td colspan="4" class="text-center text-secondary py-4">Cargando datos del reporte...</td>
                 </tr>
               </tbody>
             </table>
           </div>
+
+          <div id="reportes-paginacion" class="d-flex align-items-center justify-content-center gap-3 mt-2"></div>
         </section>
       </div>
     </main>

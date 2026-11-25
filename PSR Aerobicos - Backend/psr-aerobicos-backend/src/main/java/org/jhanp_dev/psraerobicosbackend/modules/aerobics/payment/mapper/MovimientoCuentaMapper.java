@@ -1,6 +1,7 @@
 package org.jhanp_dev.psraerobicosbackend.modules.aerobics.payment.mapper;
 
-import org.jhanp_dev.psraerobicosbackend.modules.aerobics.payment.dto.request.MovimientoCuentaRequestDTO;
+import org.jhanp_dev.psraerobicosbackend.modules.aerobics.payment.dto.request.ActualizarMovimientoCuentaRequestDTO;
+import org.jhanp_dev.psraerobicosbackend.modules.aerobics.payment.dto.request.RegistrarMovimientoCuentaRequestDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.payment.dto.response.MovimientoCuentaResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.payment.entity.MovimientoCuenta;
 import org.springframework.stereotype.Component;
@@ -8,7 +9,24 @@ import org.springframework.stereotype.Component;
 @Component
 public class MovimientoCuentaMapper {
 
-    public MovimientoCuenta aEntidad(MovimientoCuentaRequestDTO dto) {
+    public MovimientoCuenta aEntidad(RegistrarMovimientoCuentaRequestDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        return MovimientoCuenta.builder()
+                .personaId(dto.getPersonaId())
+                .llegadaId(dto.getLlegadaId())
+                .montoRecibido(dto.getMontoRecibido())
+                .montoAbonado(dto.getMontoAbonado())
+                .metodoPago(dto.getMetodoPago())
+                .tipoMovimiento(dto.getTipoMovimiento())
+                .vueltoEntregado(dto.getVueltoEntregado())
+                .usuarioId(dto.getUsuarioId())
+                .nota(dto.getNota())
+                .build();
+    }
+
+    public MovimientoCuenta aEntidad(ActualizarMovimientoCuentaRequestDTO dto) {
         if (dto == null) {
             return null;
         }

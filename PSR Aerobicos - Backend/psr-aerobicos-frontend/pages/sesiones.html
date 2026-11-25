@@ -36,6 +36,7 @@
           <div class="d-flex align-items-center gap-2 flex-wrap">
             <button
               type="button"
+              id="btn-abrir-nuevo-horario"
               class="btn-psr-secondary"
               data-bs-toggle="modal"
               data-bs-target="#modalNuevoHorario"
@@ -54,6 +55,10 @@
             </button>
           </div>
         </header>
+
+        <div id="sesiones-alert-box" class="psr-alert psr-alert-success d-none" role="alert">
+          <span>Operación completada.</span>
+        </div>
 
         <!-- Pestañas: Sesiones Programadas vs Horarios Recurrentes -->
         <nav class="psr-tabs" id="sesiones-tabs">
@@ -81,100 +86,23 @@
             <div class="d-flex align-items-center gap-2">
               <input type="date" id="sesiones-filtro-fecha" class="psr-input py-1 px-2" style="width: 155px;">
               <button type="button" id="btn-filtrar-sesiones" class="btn-psr-secondary py-1 px-3">Filtrar</button>
+              <button type="button" id="btn-limpiar-filtro-sesiones" class="btn-psr-secondary py-1 px-3">Todas</button>
             </div>
           </div>
 
-          <!-- Banda de Día 1 -->
+          <!-- Banda de Sesiones -->
           <div class="day-band">
             <div class="day-band-header">
-              <span>Hoy · Domingo 22 de Noviembre de 2026</span>
-              <span class="psr-badge badge-neutral">2 sesiones</span>
+              <span id="sesiones-band-title">Listado de Sesiones</span>
+              <span class="psr-badge badge-neutral" id="sesiones-band-count">0 sesiones</span>
             </div>
 
             <div class="sessions-grid" id="sesiones-cards-grid">
-              <!-- Tarjeta Sesión 1: En curso -->
-              <article class="session-card is-in-progress" data-sesion-id="1">
-                <div>
-                  <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
-                    <h3 class="session-time-title">06:00 p. m. - 07:00 p. m.</h3>
-                    <span class="psr-badge badge-emerald">En curso</span>
-                  </div>
-                  <p class="session-meta-line">
-                    Profesor(a): <strong class="text-white">Valeria Gómez</strong>
-                  </p>
-                  <p class="session-meta-line">
-                    Recaudo acumulado: <strong style="color: var(--emerald-400);">$45.000</strong>
-                  </p>
-                </div>
-
-                <div class="session-card-footer">
-                  <div class="d-flex align-items-center gap-3">
-                    <span><i class="ph-bold ph-users"></i> 11 llegadas</span>
-                    <span style="color: var(--emerald-400);">
-                      <i class="ph-bold ph-check-circle"></i> 9 asistieron
-                    </span>
-                  </div>
-                  <button type="button" class="btn-psr-outline-danger py-1 px-2">
-                    <i class="ph-bold ph-prohibit"></i>
-                    <span>Cancelar</span>
-                  </button>
-                </div>
-              </article>
-
-              <!-- Tarjeta Sesión 2: Programada -->
-              <article class="session-card" data-sesion-id="2">
-                <div>
-                  <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
-                    <h3 class="session-time-title">07:15 p. m. - 08:15 p. m.</h3>
-                    <span class="psr-badge badge-amber">Programada</span>
-                  </div>
-                  <p class="session-meta-line">
-                    Profesor(a): <strong class="text-white">Andrés Morales</strong>
-                  </p>
-                  <p class="session-meta-line">
-                    Recaudo acumulado: <strong class="text-white">$0</strong>
-                  </p>
-                </div>
-
-                <div class="session-card-footer">
-                  <div class="d-flex align-items-center gap-3">
-                    <span><i class="ph-bold ph-users"></i> 0 llegadas</span>
-                    <span><i class="ph-bold ph-check-circle"></i> 0 asistieron</span>
-                  </div>
-                  <button type="button" class="btn-psr-outline-danger py-1 px-2">
-                    <i class="ph-bold ph-prohibit"></i>
-                    <span>Cancelar</span>
-                  </button>
-                </div>
-              </article>
-
-              <!-- Tarjeta Sesión 3: Finalizada -->
-              <article class="session-card" data-sesion-id="3">
-                <div>
-                  <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
-                    <h3 class="session-time-title">08:00 a. m. - 09:00 a. m.</h3>
-                    <span class="psr-badge badge-neutral">Finalizada</span>
-                  </div>
-                  <p class="session-meta-line">
-                    Profesor(a): <strong class="text-white">Valeria Gómez</strong>
-                  </p>
-                  <p class="session-meta-line">
-                    Recaudo acumulado: <strong style="color: var(--emerald-400);">$75.000</strong>
-                  </p>
-                </div>
-
-                <div class="session-card-footer">
-                  <div class="d-flex align-items-center gap-3">
-                    <span><i class="ph-bold ph-users"></i> 15 llegadas</span>
-                    <span style="color: var(--emerald-400);">
-                      <i class="ph-bold ph-check-circle"></i> 15 asistieron
-                    </span>
-                  </div>
-                  <span class="small text-secondary">Cerrada</span>
-                </div>
-              </article>
+              <div class="text-secondary small py-3">Cargando sesiones de clase...</div>
             </div>
           </div>
+
+          <div id="sesiones-paginacion" class="d-flex align-items-center justify-content-center gap-3 mt-2"></div>
         </section>
 
         <!-- Vista 2: Tabla de Horarios Recurrentes Semanales -->
@@ -192,52 +120,7 @@
             </thead>
             <tbody id="horarios-table-body">
               <tr>
-                <td class="font-monospace">#1</td>
-                <td class="fw-bold text-white">Lunes</td>
-                <td>06:00 a. m.</td>
-                <td>07:00 a. m.</td>
-                <td><span class="psr-badge badge-emerald">Activo</span></td>
-                <td class="text-end">
-                  <button type="button" class="btn-icon-action" title="Editar horario">
-                    <i class="ph-bold ph-pencil-simple"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td class="font-monospace">#2</td>
-                <td class="fw-bold text-white">Lunes</td>
-                <td>06:00 p. m.</td>
-                <td>07:00 p. m.</td>
-                <td><span class="psr-badge badge-emerald">Activo</span></td>
-                <td class="text-end">
-                  <button type="button" class="btn-icon-action" title="Editar horario">
-                    <i class="ph-bold ph-pencil-simple"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td class="font-monospace">#3</td>
-                <td class="fw-bold text-white">Miércoles</td>
-                <td>06:00 p. m.</td>
-                <td>07:00 p. m.</td>
-                <td><span class="psr-badge badge-emerald">Activo</span></td>
-                <td class="text-end">
-                  <button type="button" class="btn-icon-action" title="Editar horario">
-                    <i class="ph-bold ph-pencil-simple"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td class="font-monospace">#4</td>
-                <td class="fw-bold text-white">Viernes</td>
-                <td>06:00 p. m.</td>
-                <td>07:00 p. m.</td>
-                <td><span class="psr-badge badge-emerald">Activo</span></td>
-                <td class="text-end">
-                  <button type="button" class="btn-icon-action" title="Editar horario">
-                    <i class="ph-bold ph-pencil-simple"></i>
-                  </button>
-                </td>
+                <td colspan="6" class="text-center text-secondary py-4">Cargando horarios recurrentes...</td>
               </tr>
             </tbody>
           </table>
@@ -281,8 +164,7 @@
             <div class="psr-field">
               <label for="sesion-profesor-id" class="psr-label">Profesor Asignado *</label>
               <select id="sesion-profesor-id" class="psr-select" required>
-                <option value="3">Valeria Gómez (Profesora)</option>
-                <option value="4">Andrés Morales (Profesor)</option>
+                <option value="">Cargando profesores...</option>
               </select>
             </div>
 
@@ -290,8 +172,6 @@
               <label for="sesion-horario-id" class="psr-label">Horario Base (Opcional)</label>
               <select id="sesion-horario-id" class="psr-select">
                 <option value="">Sesión extraordinaria (Sin horario base)</option>
-                <option value="1">Lunes 06:00 a. m. - 07:00 a. m.</option>
-                <option value="2">Lunes 06:00 p. m. - 07:00 p. m.</option>
               </select>
             </div>
           </div>
@@ -318,6 +198,7 @@
           </button>
         </div>
         <form id="form-horario" novalidate>
+          <input type="hidden" id="horario-id-hidden" value="">
           <div class="modal-body d-flex flex-column gap-3">
             <div class="psr-field">
               <label for="horario-dia" class="psr-label">Día de la Semana *</label>

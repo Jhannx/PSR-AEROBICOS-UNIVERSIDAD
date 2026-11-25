@@ -1,24 +1,179 @@
-// Lógica de Auditoría de Actividad: filtrado por tabla afectada y consulta de vista_historial_cambios
+// Lógica de Auditoría de Actividad: consulta paginada de vista_historial_cambios y filtros
 
 document.addEventListener("DOMContentLoaded", function () {
   const contenedorFiltros = document.getElementById("auditoria-table-filters");
   const contenedorRegistros = document.getElementById("auditoria-records-list");
+  const contenedorPaginacion = document.getElementById("auditoria-paginacion");
+  const alertBox = document.getElementById("auditoria-alert-box");
   const inputDesde = document.getElementById("auditoria-desde");
   const inputHasta = document.getElementById("auditoria-hasta");
   const btnRefrescar = document.getElementById("btn-refrescar-auditoria");
 
+  const REGISTROS_POR_PAGINA = 20;
+  let paginaActual = 0;
   let tablaSeleccionada = "all";
+  let registrosTodos = [];
 
-  function aplicarFiltroTabla() {
+  function escaparHtml(texto) {
+    return String(texto == null ? "" : texto)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function cumpleFiltrosLocales(registro) {
+    const tabla = String(registro.tablaAfectada || "");
+    if (tablaSeleccionada !== "all" && tabla !== tablaSeleccionada) {
+      return false;
+    }
+    const fechaIso = String(registro.fechaHora || "").slice(0, 10);
+    const desde = inputDesde ? inputDesde.value.trim() : "";
+    const hasta = inputHasta ? inputHasta.value.trim() : "";
+
+    if (desde && fechaIso && fechaIso < desde) {
+      return false;
+    }
+    if (hasta && fechaIso && fechaIso > hasta) {
+      return false;
+    }
+    return true;
+  }
+
+  function renderizarRegistros() {
     if (!contenedorRegistros) {
       return;
     }
-    const filas = contenedorRegistros.querySelectorAll(".audit-row");
-    filas.forEach(function (fila) {
-      const tablaFila = fila.getAttribute("data-table") || "";
-      const visible = tablaSeleccionada === "all" || tablaFila === tablaSeleccionada;
-      fila.classList.toggle("d-none", !visible);
+
+    const filtrados = registrosTodos.filter(cumpleFiltrosLocales);
+    const pagina = filtrados.slice(paginaActual * REGISTROS_POR_PAGINA, (paginaActual + 1) * REGISTROS_POR_PAGINA);
+    renderizarPaginacion({
+      number: paginaActual,
+      totalPages: Math.ceil(filtrados.length / REGISTROS_POR_PAGINA),
+      totalElements: filtrados.length
     });
+
+    if (pagina.length === 0) {
+      contenedorRegistros.innerHTML =
+        '<div class="psr-card text-center text-secondary py-4">' +
+          "No se encontraron registros de auditoría para los filtros seleccionados." +
+        "</div>";
+      return;
+    }
+
+    contenedorRegistros.innerHTML = pagina
+      .map(function (reg) {
+        const tabla = escaparHtml(reg.tablaAfectada || "movimiento_cuenta");
+        const accion = escaparHtml(reg.accion || "UPDATE");
+        const badgeColor =
+          accion === "DELETE"
+            ? "badge-rose"
+            : tabla === "tarifa"
+              ? "badge-purple"
+              : "badge-amber";
+        const campo = escaparHtml(reg.campo || reg.campoModificado || "");
+        const responsable = escaparHtml(
+          reg.usuarioResponsable ||
+          reg.usernameResponsable ||
+          reg.realizadoPor ||
+          (reg.usuarioId ? "Usuario #" + reg.usuarioId : "Sistema")
+        );
+        const valorAnterior = escaparHtml(reg.valorAnterior != null ? reg.valorAnterior : "—");
+        const valorNuevo = escaparHtml(reg.valorNuevo != null ? reg.valorNuevo : "ELIMINADO");
+        const registroId = reg.registroId != null ? reg.registroId : reg.id != null ? reg.id : 1;
+
+        return (
+          '<article class="audit-row" data-table="' + tabla + '">' +
+            '<div class="d-flex align-items-center gap-2">' +
+              '<span class="psr-badge ' + badgeColor + '">' + accion + " · " + tabla + "</span>" +
+              '<span class="text-secondary small">Registro #' + registroId + (campo ? " · " + campo : "") + "</span>" +
+            "</div>" +
+            '<div class="audit-diff">' +
+              '<span class="audit-old-val">' + valorAnterior + "</span>" +
+              '<i class="ph-bold ph-arrow-right text-secondary"></i>' +
+              '<span class="audit-new-val">' + valorNuevo + "</span>" +
+            "</div>" +
+            '<div class="text-end">' +
+              '<span class="text-white fw-semibold small">' + responsable + "</span>" +
+              '<span class="text-secondary small ms-2">' + ValidacionesPSR.formatearFechaHora(reg.fechaHora) + "</span>" +
+            "</div>" +
+          "</article>"
+        );
+      })
+      .join("");
+  }
+
+  function renderizarPaginacion(metaPagina) {
+    if (!contenedorPaginacion) {
+      return;
+    }
+    if (!metaPagina || metaPagina.totalPages <= 1) {
+      contenedorPaginacion.innerHTML = "";
+      return;
+    }
+
+    const actual = Number(metaPagina.number || 0);
+    const totalPaginas = Number(metaPagina.totalPages || 1);
+    const totalElementos = Number(metaPagina.totalElements || 0);
+
+    contenedorPaginacion.innerHTML =
+      '<button type="button" class="btn-psr-secondary py-1 px-3" id="btn-auditoria-prev" ' +
+        (actual <= 0 ? "disabled" : "") +
+      ">Anterior</button>" +
+      '<span class="small text-secondary">Página ' +
+        (actual + 1) +
+        " de " +
+        totalPaginas +
+        " (" +
+        totalElementos +
+        " eventos)</span>" +
+      '<button type="button" class="btn-psr-secondary py-1 px-3" id="btn-auditoria-next" ' +
+        (actual + 1 >= totalPaginas ? "disabled" : "") +
+      ">Siguiente</button>";
+
+    const btnPrev = document.getElementById("btn-auditoria-prev");
+    const btnNext = document.getElementById("btn-auditoria-next");
+
+    if (btnPrev) {
+      btnPrev.addEventListener("click", function () {
+        if (paginaActual > 0) {
+          paginaActual -= 1;
+          renderizarRegistros();
+        }
+      });
+    }
+    if (btnNext) {
+      btnNext.addEventListener("click", function () {
+        if (paginaActual + 1 < totalPaginas) {
+          paginaActual += 1;
+          renderizarRegistros();
+        }
+      });
+    }
+  }
+
+  async function consultarAuditoria(pagina) {
+    paginaActual = typeof pagina === "number" && pagina >= 0 ? pagina : 0;
+    ValidacionesPSR.ocultarAlerta(alertBox);
+
+    try {
+      registrosTodos = [];
+      let paginaRemota = 0;
+      let totalPaginas = 1;
+      while (paginaRemota < totalPaginas) {
+        const respuesta = await ClienteHttp.get(
+          "/auditoria/historial-cambios?page=" + paginaRemota + "&size=100"
+        );
+        registrosTodos.push(...(Array.isArray(respuesta) ? respuesta : respuesta.content || []));
+        totalPaginas = respuesta && respuesta.page ? Number(respuesta.page.totalPages || 0) : 1;
+        paginaRemota += 1;
+      }
+      renderizarRegistros();
+    } catch (error) {
+      registrosTodos = [];
+      renderizarRegistros();
+      ValidacionesPSR.mostrarAlerta(alertBox, error.message, "error");
+    }
   }
 
   if (contenedorFiltros) {
@@ -30,64 +185,23 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         boton.classList.add("is-active");
         tablaSeleccionada = boton.getAttribute("data-table") || "all";
-        aplicarFiltroTabla();
+        paginaActual = 0;
+        renderizarRegistros();
       });
     });
   }
 
-  async function consultarAuditoria() {
-    try {
-      const registros = await ClienteHttp.get("/auditoria/historial-cambios");
-      if (!Array.isArray(registros) || registros.length === 0 || !contenedorRegistros) {
-        return;
-      }
-
-      contenedorRegistros.innerHTML = registros
-        .map(function (reg) {
-          const tabla = reg.tablaAfectada || "movimiento_cuenta";
-          const accion = reg.accion || "UPDATE";
-          const badgeColor = accion === "DELETE" ? "badge-rose" : tabla === "tarifa" ? "badge-purple" : "badge-amber";
-          const campo = reg.campo || reg.campoModificado || "";
-          const responsable =
-            reg.usuarioResponsable ||
-            reg.realizadoPor ||
-            (reg.usuarioId ? "Usuario #" + reg.usuarioId : "Sistema");
-
-          return (
-            '<article class="audit-row" data-table="' + tabla + '">' +
-              '<div class="d-flex align-items-center gap-2">' +
-                '<span class="psr-badge ' + badgeColor + '">' + accion + ' · ' + tabla + '</span>' +
-                '<span class="text-secondary small">Registro #' + (reg.registroId || reg.id || 1) + (campo ? ' · ' + campo : '') + '</span>' +
-              '</div>' +
-              '<div class="audit-diff">' +
-                '<span class="audit-old-val">' + (reg.valorAnterior || "—") + '</span>' +
-                '<i class="ph-bold ph-arrow-right text-secondary"></i>' +
-                '<span class="audit-new-val">' + (reg.valorNuevo || "—") + '</span>' +
-              '</div>' +
-              '<div class="text-end">' +
-                '<span class="text-white fw-semibold small">' + responsable + '</span>' +
-                '<span class="text-secondary small ms-2">' + ValidacionesPSR.formatearFechaHora(reg.fechaHora) + '</span>' +
-              '</div>' +
-            '</article>'
-          );
-        })
-        .join("");
-
-      aplicarFiltroTabla();
-    } catch (e) {
-      // Mantiene los registros de ejemplo en pantalla si el backend no está en ejecución
-    }
-  }
-
   if (btnRefrescar) {
-    btnRefrescar.addEventListener("click", consultarAuditoria);
+    btnRefrescar.addEventListener("click", function () {
+      consultarAuditoria(paginaActual);
+    });
   }
   if (inputDesde) {
-    inputDesde.addEventListener("change", consultarAuditoria);
+    inputDesde.addEventListener("change", function () { paginaActual = 0; renderizarRegistros(); });
   }
   if (inputHasta) {
-    inputHasta.addEventListener("change", consultarAuditoria);
+    inputHasta.addEventListener("change", function () { paginaActual = 0; renderizarRegistros(); });
   }
 
-  consultarAuditoria();
+  consultarAuditoria(0);
 });

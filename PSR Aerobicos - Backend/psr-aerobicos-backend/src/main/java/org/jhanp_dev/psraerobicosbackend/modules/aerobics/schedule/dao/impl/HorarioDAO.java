@@ -2,18 +2,20 @@ package org.jhanp_dev.psraerobicosbackend.modules.aerobics.schedule.dao.impl;
 
 import org.jhanp_dev.psraerobicosbackend.config.database.ConexionDB;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.schedule.dao.interfaces.IHorarioDAO;
-import org.jhanp_dev.psraerobicosbackend.modules.aerobics.schedule.dto.request.HorarioRequestDTO;
+import org.jhanp_dev.psraerobicosbackend.modules.aerobics.schedule.dto.request.ActualizarHorarioRequestDTO;
+import org.jhanp_dev.psraerobicosbackend.modules.aerobics.schedule.dto.request.CrearHorarioRequestDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.schedule.dto.response.HorarioResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.schedule.entity.Horario;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.schedule.mapper.HorarioMapper;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Time;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,11 +23,9 @@ import java.util.Optional;
 @Repository
 public class HorarioDAO implements IHorarioDAO {
 
-    private final Connection conexion;
     private final HorarioMapper horarioMapper;
 
-    public HorarioDAO(HorarioMapper horarioMapper) throws SQLException {
-        this.conexion = ConexionDB.getConexion();
+    public HorarioDAO(HorarioMapper horarioMapper) {
         this.horarioMapper = horarioMapper;
     }
 
@@ -39,7 +39,8 @@ public class HorarioDAO implements IHorarioDAO {
         String sql = BASE_SELECT + " ORDER BY dia_semana ASC, hora_inicio ASC";
         List<HorarioResponseDTO> horarios = new ArrayList<>();
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 Horario entidad = mapearFila(rs);
@@ -56,7 +57,8 @@ public class HorarioDAO implements IHorarioDAO {
         String sql = BASE_SELECT + " WHERE activo = TRUE ORDER BY dia_semana ASC, hora_inicio ASC";
         List<HorarioResponseDTO> horarios = new ArrayList<>();
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 Horario entidad = mapearFila(rs);
@@ -72,7 +74,8 @@ public class HorarioDAO implements IHorarioDAO {
     public Optional<HorarioResponseDTO> obtenerPorId(Integer id) {
         String sql = BASE_SELECT + " WHERE id = ?";
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -87,22 +90,19 @@ public class HorarioDAO implements IHorarioDAO {
     }
 
     @Override
-    public HorarioResponseDTO guardar(HorarioRequestDTO dto) {
+    public HorarioResponseDTO guardar(CrearHorarioRequestDTO dto) {
         Horario horario = horarioMapper.aEntidad(dto);
-        String sql = "INSERT INTO horario (dia_semana, hora_inicio, hora_fin, activo) VALUES (?, ?, ?, ?)";
         boolean activo = horario.getActivo() != null ? horario.getActivo() : true;
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             CallableStatement stmt = conexion.prepareCall("{CALL sp_crear_horario(?, ?, ?, ?, ?)}")) {
             stmt.setInt(1, horario.getDiaSemana());
             stmt.setTime(2, Time.valueOf(horario.getHoraInicio()));
             stmt.setTime(3, Time.valueOf(horario.getHoraFin()));
             stmt.setBoolean(4, activo);
-            stmt.executeUpdate();
-            try (ResultSet keys = stmt.getGeneratedKeys()) {
-                if (keys.next()) {
-                    horario.setId(keys.getInt(1));
-                }
-            }
+            stmt.registerOutParameter(5, Types.INTEGER);
+            stmt.execute();
+            horario.setId(stmt.getInt(5));
         } catch (SQLException e) {
             throw new IllegalStateException("Error al guardar horario: " + e.getMessage(), e);
         }
@@ -111,18 +111,19 @@ public class HorarioDAO implements IHorarioDAO {
     }
 
     @Override
-    public boolean actualizar(Integer id, HorarioRequestDTO dto) {
+    public boolean actualizar(Integer id, ActualizarHorarioRequestDTO dto) {
         Horario horario = horarioMapper.aEntidad(dto);
-        horario.setId(id);
-        String sql = "UPDATE horario SET dia_semana = ?, hora_inicio = ?, hora_fin = ?, activo = ? WHERE id = ?";
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
-            stmt.setInt(1, horario.getDiaSemana());
-            stmt.setTime(2, Time.valueOf(horario.getHoraInicio()));
-            stmt.setTime(3, Time.valueOf(horario.getHoraFin()));
-            stmt.setBoolean(4, horario.getActivo());
-            stmt.setInt(5, horario.getId());
-            return stmt.executeUpdate() > 0;
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             CallableStatement stmt = conexion.prepareCall("{CALL sp_actualizar_horario(?, ?, ?, ?, ?, ?)}")) {
+            stmt.setInt(1, id);
+            stmt.setInt(2, horario.getDiaSemana());
+            stmt.setTime(3, Time.valueOf(horario.getHoraInicio()));
+            stmt.setTime(4, Time.valueOf(horario.getHoraFin()));
+            stmt.setBoolean(5, horario.getActivo());
+            stmt.registerOutParameter(6, Types.BOOLEAN);
+            stmt.execute();
+            return stmt.getBoolean(6);
         } catch (SQLException e) {
             throw new IllegalStateException("Error al actualizar horario: " + e.getMessage(), e);
         }
@@ -130,11 +131,12 @@ public class HorarioDAO implements IHorarioDAO {
 
     @Override
     public boolean eliminar(Integer id) {
-        String sql = "UPDATE horario SET activo = FALSE WHERE id = ?";
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             CallableStatement stmt = conexion.prepareCall("{CALL sp_desactivar_horario(?, ?)}")) {
             stmt.setInt(1, id);
-            return stmt.executeUpdate() > 0;
+            stmt.registerOutParameter(2, Types.BOOLEAN);
+            stmt.execute();
+            return stmt.getBoolean(2);
         } catch (SQLException e) {
             throw new IllegalStateException("Error al eliminar horario: " + e.getMessage(), e);
         }

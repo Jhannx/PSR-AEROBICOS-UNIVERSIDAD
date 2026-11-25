@@ -29,7 +29,7 @@
               <span>Personas</span>
             </h1>
             <p class="page-subtitle" id="personas-counter-subtitle">
-              Directorio general de alumnos y miembros · <strong class="text-white">15 registrados</strong> · <strong class="text-white">14 activos</strong>
+              Directorio general de alumnos y miembros · <strong class="text-white" id="personas-total">Cargando...</strong>
             </p>
           </div>
 
@@ -64,135 +64,8 @@
         </div>
 
         <!-- Listado de personas (PersonRow) -->
-        <section class="psr-list-card" id="personas-list-container">
-          <!-- Persona 1 -->
-          <article class="psr-list-row" data-persona-id="1">
-            <div class="d-flex align-items-center gap-3 min-w-0 flex-grow-1">
-              <div class="person-avatar">C</div>
-              <div class="min-w-0">
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                  <p class="fw-bold text-white mb-0">Camila Andrea Torres</p>
-                  <span class="psr-badge badge-emerald">Al día ($0)</span>
-                  <span class="psr-badge badge-blue">Miembro</span>
-                </div>
-                <p class="small text-secondary mb-0 mt-1">
-                  <span class="font-monospace">Doc: CC 1067890123</span> · Tel: 3004567890 · Emergencia: Luis Torres (3102223344)
-                </p>
-              </div>
-            </div>
-
-            <div class="d-flex align-items-center gap-2 flex-shrink-0">
-              <span class="psr-badge badge-neutral">Autoregistro</span>
-              <button
-                type="button"
-                class="btn-icon-action"
-                title="Editar persona"
-                data-bs-toggle="modal"
-                data-bs-target="#modalPersona"
-              >
-                <i class="ph-bold ph-pencil-simple"></i>
-              </button>
-              <button type="button" class="btn-icon-action is-warning" title="Desactivar persona">
-                <i class="ph-bold ph-user-minus"></i>
-              </button>
-            </div>
-          </article>
-
-          <!-- Persona 2 -->
-          <article class="psr-list-row" data-persona-id="2">
-            <div class="d-flex align-items-center gap-3 min-w-0 flex-grow-1">
-              <div class="person-avatar">M</div>
-              <div class="min-w-0">
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                  <p class="fw-bold text-white mb-0">Mateo Hernández Ruiz</p>
-                  <span class="psr-badge badge-blue">Saldo a favor (+$15.000)</span>
-                  <span class="psr-badge badge-blue">Miembro</span>
-                </div>
-                <p class="small text-secondary mb-0 mt-1">
-                  <span class="font-monospace">Doc: CC 1067912345</span> · Tel: 3115678901 · Emergencia: Marta Ruiz (3128889900)
-                </p>
-              </div>
-            </div>
-
-            <div class="d-flex align-items-center gap-2 flex-shrink-0">
-              <span class="psr-badge badge-neutral">Admin</span>
-              <button
-                type="button"
-                class="btn-icon-action"
-                title="Editar persona"
-                data-bs-toggle="modal"
-                data-bs-target="#modalPersona"
-              >
-                <i class="ph-bold ph-pencil-simple"></i>
-              </button>
-              <button type="button" class="btn-icon-action is-warning" title="Desactivar persona">
-                <i class="ph-bold ph-user-minus"></i>
-              </button>
-            </div>
-          </article>
-
-          <!-- Persona 3 -->
-          <article class="psr-list-row" data-persona-id="3">
-            <div class="d-flex align-items-center gap-3 min-w-0 flex-grow-1">
-              <div class="person-avatar">V</div>
-              <div class="min-w-0">
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                  <p class="fw-bold text-white mb-0">Valentina Mendoza Pineda</p>
-                  <span class="psr-badge badge-rose">Debe (-$5.000)</span>
-                </div>
-                <p class="small text-secondary mb-0 mt-1">
-                  <span class="font-monospace">Doc: CC 1067954321</span> · Tel: 3156789012 · Emergencia: Jorge Mendoza (3151112233)
-                </p>
-              </div>
-            </div>
-
-            <div class="d-flex align-items-center gap-2 flex-shrink-0">
-              <span class="psr-badge badge-neutral">Admin</span>
-              <button
-                type="button"
-                class="btn-icon-action"
-                title="Editar persona"
-                data-bs-toggle="modal"
-                data-bs-target="#modalPersona"
-              >
-                <i class="ph-bold ph-pencil-simple"></i>
-              </button>
-              <button type="button" class="btn-icon-action is-warning" title="Desactivar persona">
-                <i class="ph-bold ph-user-minus"></i>
-              </button>
-            </div>
-          </article>
-
-          <!-- Persona 4 (Staff multirol) -->
-          <article class="psr-list-row" data-persona-id="4">
-            <div class="d-flex align-items-center gap-3 min-w-0 flex-grow-1">
-              <div class="person-avatar">E</div>
-              <div class="min-w-0">
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                  <p class="fw-bold text-white mb-0">Elena Vargas Córdoba</p>
-                  <span class="psr-badge badge-purple">Administrador</span>
-                  <span class="psr-badge badge-emerald">Recepción</span>
-                </div>
-                <p class="small text-secondary mb-0 mt-1">
-                  <span class="font-monospace">Doc: CC 1102812345</span> · Tel: 3012345678 · Correo: elena.vargas@psr.com
-                </p>
-              </div>
-            </div>
-
-            <div class="d-flex align-items-center gap-2 flex-shrink-0">
-              <span class="psr-badge badge-neutral">Admin</span>
-              <button
-                type="button"
-                class="btn-icon-action"
-                title="Editar persona"
-                data-bs-toggle="modal"
-                data-bs-target="#modalPersona"
-              >
-                <i class="ph-bold ph-pencil-simple"></i>
-              </button>
-            </div>
-          </article>
-        </section>
+        <section class="psr-list-card" id="personas-list-container" aria-live="polite"></section>
+        <div id="personas-paginacion" class="d-flex align-items-center justify-content-center gap-3 mt-3"></div>
       </div>
     </main>
   </div>
@@ -312,7 +185,7 @@
                       id="contacto-nombre"
                       class="psr-input"
                       placeholder="María López"
-                      maxlength="100"
+                      maxlength="150"
                       required
                     >
                   </div>

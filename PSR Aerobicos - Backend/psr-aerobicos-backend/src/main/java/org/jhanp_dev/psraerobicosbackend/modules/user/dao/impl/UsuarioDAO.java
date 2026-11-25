@@ -2,10 +2,10 @@ package org.jhanp_dev.psraerobicosbackend.modules.user.dao.impl;
 
 import org.jhanp_dev.psraerobicosbackend.config.database.ConexionDB;
 import org.jhanp_dev.psraerobicosbackend.modules.user.dao.interfaces.IUsuarioDAO;
-import org.jhanp_dev.psraerobicosbackend.modules.user.dto.request.UsuarioRequestDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.user.dto.response.UsuarioResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.user.entity.Usuario;
 import org.jhanp_dev.psraerobicosbackend.modules.user.mapper.UsuarioMapper;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
@@ -22,11 +22,9 @@ import java.util.Optional;
 @Repository
 public class UsuarioDAO implements IUsuarioDAO {
 
-    private final Connection conexion;
     private final UsuarioMapper usuarioMapper;
 
-    public UsuarioDAO(UsuarioMapper usuarioMapper) throws SQLException {
-        this.conexion = ConexionDB.getConexion();
+    public UsuarioDAO(UsuarioMapper usuarioMapper) {
         this.usuarioMapper = usuarioMapper;
     }
 
@@ -40,15 +38,22 @@ public class UsuarioDAO implements IUsuarioDAO {
             """;
 
     @Override
-    public List<UsuarioResponseDTO> listarTodos() {
-        String sql = BASE_SELECT + " ORDER BY u.id ASC";
+    public List<UsuarioResponseDTO> listarPaginado(String termino, Pageable pageable) {
+        String filtro = normalizarTermino(termino);
+        String where = filtro == null ? "" : " WHERE p.nombre LIKE ? OR p.apellidos LIKE ? OR u.numero_documento LIKE ? OR u.correo LIKE ?";
+        String sql = BASE_SELECT + where + " ORDER BY u.id ASC LIMIT ? OFFSET ?";
         List<UsuarioResponseDTO> usuarios = new ArrayList<>();
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql);
-                ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                Usuario entidad = mapearFila(rs);
-                usuarios.add(mapearResponse(rs, entidad));
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            int indice = 1;
+            if (filtro != null) {
+                String patron = "%" + filtro + "%";
+                for (int i = 0; i < 4; i++) stmt.setString(indice++, patron);
+            }
+            stmt.setInt(indice++, pageable.getPageSize());
+            stmt.setLong(indice, pageable.getOffset());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) usuarios.add(mapearResponse(rs, mapearFila(rs)));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al listar usuarios: " + e.getMessage(), e);
@@ -57,25 +62,64 @@ public class UsuarioDAO implements IUsuarioDAO {
     }
 
     @Override
-    public List<UsuarioResponseDTO> buscar(String termino) {
-        String sql = BASE_SELECT + " WHERE p.nombre LIKE ? OR p.apellidos LIKE ? OR u.numero_documento LIKE ? OR u.correo LIKE ? ORDER BY u.id";
-        String patron = "%" + termino + "%";
-        List<UsuarioResponseDTO> lista = new ArrayList<>();
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
-            for (int i = 1; i <= 4; i++) stmt.setString(i, patron);
+    public long contar(String termino) {
+        String filtro = normalizarTermino(termino);
+        String where = filtro == null ? "" : " WHERE p.nombre LIKE ? OR p.apellidos LIKE ? OR u.numero_documento LIKE ? OR u.correo LIKE ?";
+        String sql = "SELECT COUNT(*) FROM usuario u LEFT JOIN persona p ON p.id = u.persona_id" + where;
+        return contar(sql, filtro, 4, "usuarios");
+    }
+
+    @Override
+    public List<UsuarioResponseDTO> listarProfesoresPaginado(Pageable pageable) {
+        String where = " WHERE EXISTS (SELECT 1 FROM usuario_rol ur JOIN rol r ON r.id = ur.rol_id "
+                + "WHERE ur.usuario_id = u.id AND r.nombre IN ('PROFESOR', 'ADMINISTRADOR'))";
+        String sql = BASE_SELECT + where + " ORDER BY u.id ASC LIMIT ? OFFSET ?";
+        List<UsuarioResponseDTO> profesores = new ArrayList<>();
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, pageable.getPageSize());
+            stmt.setLong(2, pageable.getOffset());
             try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) lista.add(mapearResponse(rs, mapearFila(rs)));
+                while (rs.next()) profesores.add(mapearResponse(rs, mapearFila(rs)));
             }
         } catch (SQLException e) {
-            throw new IllegalStateException("Error al buscar usuarios: " + e.getMessage(), e);
+            throw new IllegalStateException("Error al listar profesores: " + e.getMessage(), e);
         }
-        return lista;
+        return profesores;
+    }
+
+    @Override
+    public long contarProfesores() {
+        String sql = "SELECT COUNT(*) FROM usuario u WHERE EXISTS ("
+                + "SELECT 1 FROM usuario_rol ur JOIN rol r ON r.id = ur.rol_id "
+                + "WHERE ur.usuario_id = u.id AND r.nombre IN ('PROFESOR', 'ADMINISTRADOR'))";
+        return contar(sql, null, 0, "profesores");
+    }
+
+    private long contar(String sql, String filtro, int parametrosFiltro, String descripcion) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            if (filtro != null) {
+                String patron = "%" + filtro + "%";
+                for (int i = 1; i <= parametrosFiltro; i++) stmt.setString(i, patron);
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() ? rs.getLong(1) : 0L;
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al contar " + descripcion + ": " + e.getMessage(), e);
+        }
+    }
+
+    private String normalizarTermino(String termino) {
+        return termino == null || termino.isBlank() ? null : termino.trim();
     }
 
     @Override
     public UsuarioResponseDTO crearCuenta(Integer personaId, String passwordHash, String correo) {
         String llamada = "{CALL sp_registrar_usuario_para_persona(?, ?, ?, ?)}";
-        try (CallableStatement stmt = conexion.prepareCall(llamada)) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             CallableStatement stmt = conexion.prepareCall(llamada)) {
             stmt.setInt(1, personaId);
             stmt.setString(2, passwordHash);
             stmt.setString(3, correo);
@@ -92,7 +136,8 @@ public class UsuarioDAO implements IUsuarioDAO {
     public Optional<UsuarioResponseDTO> obtenerPorId(Integer id) {
         String sql = BASE_SELECT + " WHERE u.id = ?";
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -110,7 +155,8 @@ public class UsuarioDAO implements IUsuarioDAO {
     public Optional<UsuarioResponseDTO> obtenerPorCorreo(String correo) {
         String sql = BASE_SELECT + " WHERE u.correo = ?";
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setString(1, correo);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -128,7 +174,8 @@ public class UsuarioDAO implements IUsuarioDAO {
     public Optional<UsuarioResponseDTO> obtenerPorNumeroDocumento(String numeroDocumento) {
         String sql = BASE_SELECT + " WHERE u.numero_documento = ?";
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setString(1, numeroDocumento);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -143,53 +190,21 @@ public class UsuarioDAO implements IUsuarioDAO {
     }
 
     @Override
-    public boolean actualizar(Integer id, UsuarioRequestDTO dto) {
-        Usuario usuario = usuarioMapper.aEntidad(dto);
-        usuario.setId(id);
-        String sql = """
-                UPDATE usuario
-                SET numero_documento = ?,
-                    correo = ?,
-                    persona_id = ?,
-                    activo = ?
-                WHERE id = ?
-                """;
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
-            if (usuario.getNumeroDocumento() != null) {
-                stmt.setString(1, usuario.getNumeroDocumento());
-            } else {
-                stmt.setNull(1, Types.VARCHAR);
+    public Optional<Usuario> obtenerParaAutenticacion(String identificador) {
+        String sql = BASE_SELECT + " WHERE u.numero_documento = ? OR u.correo = ? LIMIT 1";
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setString(1, identificador);
+            stmt.setString(2, identificador);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapearFila(rs));
+                }
             }
-            if (usuario.getCorreo() != null) {
-                stmt.setString(2, usuario.getCorreo());
-            } else {
-                stmt.setNull(2, Types.VARCHAR);
-            }
-            if (usuario.getPersonaId() != null) {
-                stmt.setInt(3, usuario.getPersonaId());
-            } else {
-                stmt.setNull(3, Types.INTEGER);
-            }
-            stmt.setBoolean(4, usuario.getActivo() != null ? usuario.getActivo() : true);
-            stmt.setInt(5, usuario.getId());
-
-            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            throw new IllegalStateException("Error al actualizar usuario: " + e.getMessage(), e);
+            throw new IllegalStateException("Error al consultar las credenciales", e);
         }
-    }
-
-    @Override
-    public boolean eliminar(Integer id) {
-        String sql = "DELETE FROM usuario WHERE id = ?";
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            throw new IllegalStateException("Error al eliminar usuario: " + e.getMessage(), e);
-        }
+        return Optional.empty();
     }
 
     private Usuario mapearFila(ResultSet rs) throws SQLException {

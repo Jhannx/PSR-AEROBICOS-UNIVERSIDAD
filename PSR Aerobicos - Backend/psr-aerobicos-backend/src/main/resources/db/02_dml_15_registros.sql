@@ -47,22 +47,23 @@ INSERT INTO contacto_emergencia (id, persona_id, nombre, telefono, observaciones
 (15, 15, 'Elena Berrocal', '3189995566', 'Hermana', '2026-09-25 18:00:00');
 
 -- 4. Usuario (Cuentas del personal y miembros)
+-- Las cuentas de muestra usan el documento como contraseña inicial, cifrada con BCrypt.
 INSERT INTO usuario (id, numero_documento, correo, password_hash, persona_id, activo, fecha_creacion) VALUES
-(1, '1102812001', 'admin@psr.com', '$2a$10$abcdefghijklmnopqrstuv1', 1, TRUE, '2026-08-01 08:00:00'),
-(2, '1102812002', 'recepcion@psr.com', '$2a$10$abcdefghijklmnopqrstuv2', 2, TRUE, '2026-08-01 08:30:00'),
-(3, '1102812003', 'carlos.mendoza@psr.com', '$2a$10$abcdefghijklmnopqrstuv3', 3, TRUE, '2026-08-05 09:00:00'),
-(4, '1102812004', 'sofia.martinez@gmail.com', '$2a$10$abcdefghijklmnopqrstuv4', 4, TRUE, '2026-08-10 10:00:00'),
-(5, '1102812005', 'mateo.ramos@gmail.com', '$2a$10$abcdefghijklmnopqrstuv5', 5, TRUE, '2026-08-15 14:00:00'),
-(6, '1102812006', 'valentina.gomez@gmail.com', '$2a$10$abcdefghijklmnopqrstuv6', 6, TRUE, '2026-08-20 16:30:00'),
-(7, '1102812007', 'andres.petro@gmail.com', '$2a$10$abcdefghijklmnopqrstuv7', 7, TRUE, '2026-09-01 08:15:00'),
-(8, '1102812008', 'mariana.morales@gmail.com', '$2a$10$abcdefghijklmnopqrstuv8', 8, TRUE, '2026-09-05 11:00:00'),
-(9, '1102812009', 'diego.soto@gmail.com', '$2a$10$abcdefghijklmnopqrstuv9', 9, TRUE, '2026-09-10 15:00:00'),
-(10, '1102812010', 'isabella.diaz@gmail.com', '$2a$10$abcdefghijklmnopqrstuv0', 10, TRUE, '2026-09-12 17:00:00'),
-(11, '1102812011', 'camilo.vergara@gmail.com', '$2a$10$abcdefghijklmnopqrstua1', 11, TRUE, '2026-09-15 09:30:00'),
-(12, '1102812012', 'gabriela.mejia@gmail.com', '$2a$10$abcdefghijklmnopqrstua2', 12, TRUE, '2026-09-18 10:45:00'),
-(13, '1067912013', 'samuel.polo@gmail.com', '$2a$10$abcdefghijklmnopqrstua3', 13, TRUE, '2026-09-20 14:20:00'),
-(14, '1102812014', 'daniela.ospina@gmail.com', '$2a$10$abcdefghijklmnopqrstua4', 14, TRUE, '2026-09-22 16:00:00'),
-(15, '1102812015', 'juan.berrocal@gmail.com', '$2a$10$abcdefghijklmnopqrstua5', 15, TRUE, '2026-09-25 18:00:00');
+(1, '1102812001', 'admin@psr.com', '$2a$10$JxSGuCsSLjk2cLwyuUY6nO4lp3Xo6eQQWVBzsykHixZ4fa2GHnXpq', 1, TRUE, '2026-08-01 08:00:00'),
+(2, '1102812002', 'recepcion@psr.com', '$2a$10$bjCc70/q/XgdQbs/qUNW3.EXn8osQQ6pfEls5ZKfiPgI1MZIplzPW', 2, TRUE, '2026-08-01 08:30:00'),
+(3, '1102812003', 'carlos.mendoza@psr.com', '$2a$10$fr3nT01cpDiZ9gXUD2H2yutUYzFRxfi5p.9NCgrIInAIHbGCrIBny', 3, TRUE, '2026-08-05 09:00:00'),
+(4, '1102812004', 'sofia.martinez@gmail.com', '$2a$10$.jCh8NW47FJxK9FECFFe4OyA6m9zV53dtfAWsxyC0Ub8yjP6.l.AG', 4, TRUE, '2026-08-10 10:00:00'),
+(5, '1102812005', 'mateo.ramos@gmail.com', '$2a$10$2/JzW20xBYexVJak7ZhxqubrmqKYr3jQY5V0s4jKYlmg1Yb4p0GqG', 5, TRUE, '2026-08-15 14:00:00'),
+(6, '1102812006', 'valentina.gomez@gmail.com', '$2a$10$HFbpWua5kTDuCJHyvTnhi.aV3GLiOeFRDvNM98aCah25b8kHrn85i', 6, TRUE, '2026-08-20 16:30:00'),
+(7, '1102812007', 'andres.petro@gmail.com', '$2a$10$g6I50VyzSOUmXS.mlbE33uSjCYuSO.gcNf1cTmacloLyMkr.NP4Hu', 7, TRUE, '2026-09-01 08:15:00'),
+(8, '1102812008', 'mariana.morales@gmail.com', '$2a$10$Mk4O5pcDSBIgqizcG.e.8.q5BUiUYYxx8b3HGvzJUq4ZUfjcEmM4C', 8, TRUE, '2026-09-05 11:00:00'),
+(9, '1102812009', 'diego.soto@gmail.com', '$2a$10$7CwUwnBDIWl.0VcB1Sg9KOitNGDjvUziZe2DdoJEGYOGU.YIcgW/q', 9, TRUE, '2026-09-10 15:00:00'),
+(10, '1102812010', 'isabella.diaz@gmail.com', '$2a$10$cRlp7Eq6GWfpav8TwAjIWe8fVRBHScuEMrQ/RwErSU14L57UcaPGW', 10, TRUE, '2026-09-12 17:00:00'),
+(11, '1102812011', 'camilo.vergara@gmail.com', '$2a$10$7nQaqPizisIaIa1GHHo77ujmsArg5lGf9GMrJncX6WOtsD/sW4SwG', 11, TRUE, '2026-09-15 09:30:00'),
+(12, '1102812012', 'gabriela.mejia@gmail.com', '$2a$10$G4ab8FhwGIjvE6eq0GYQFuMPbi5ckrHXeN1HeoXTVrc1ZuDuQAwn6', 12, TRUE, '2026-09-18 10:45:00'),
+(13, '1067912013', 'samuel.polo@gmail.com', '$2a$10$bAhTBA6Jq9PGvihIkGE5qODZ1Inexo3BGjomy2QgEqFIK7.hP7Tpy', 13, TRUE, '2026-09-20 14:20:00'),
+(14, '1102812014', 'daniela.ospina@gmail.com', '$2a$10$69aZGIQfciE1jR3HTAc3beoqr7KHMkdWh30KL/Ndz0dR2.LAOJ4zm', 14, TRUE, '2026-09-22 16:00:00'),
+(15, '1102812015', 'juan.berrocal@gmail.com', '$2a$10$bLYpeSAR0wPGP42oiN.D2uy7Lc0Wj05KcRVYTmeVmR8.ZvRBJGuYe', 15, TRUE, '2026-09-25 18:00:00');
 
 -- 5. Usuario_Rol (Asignacion de roles)
 INSERT INTO usuario_rol (id, usuario_id, rol_id, asignado_en) VALUES

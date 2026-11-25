@@ -24,7 +24,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function redirigirSegunRoles(usuario) {
-    SesionPSR.guardarSesion(usuario);
+    if (!SesionPSR.guardarSesion(usuario)) {
+      throw new Error("El servidor no devolvió una cuenta con roles válidos.");
+    }
     if (SesionPSR.requiereSeleccionDeRol()) {
       window.location.href = "pages/seleccionar-rol.html";
     } else {
@@ -67,20 +69,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         redirigirSegunRoles(respuestaUsuario);
       } catch (error) {
-        if (error.sinConexion) {
-          // Respaldo local mientras el servidor backend está apagado
-          const usuarioLocal = {
-            id: 1,
-            personaId: 1,
-            documento: valId.valor,
-            nombreCompleto: "Elena Vargas",
-            correo: "elena.vargas@psr.com",
-            roles: ["ADMINISTRADOR", "RECEPCIONISTA", "PROFESOR", "MIEMBRO"]
-          };
-          redirigirSegunRoles(usuarioLocal);
-          return;
-        }
-
         ValidacionesPSR.mostrarAlerta(
           alertError,
           error.message || "Documento/correo o contraseña incorrectos.",

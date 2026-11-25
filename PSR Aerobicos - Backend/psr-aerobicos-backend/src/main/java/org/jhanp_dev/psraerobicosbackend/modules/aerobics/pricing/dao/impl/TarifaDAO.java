@@ -9,6 +9,7 @@ import org.jhanp_dev.psraerobicosbackend.modules.aerobics.pricing.mapper.TarifaM
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,11 +22,9 @@ import java.util.Optional;
 @Repository
 public class TarifaDAO implements ITarifaDAO {
 
-    private final Connection conexion;
     private final TarifaMapper tarifaMapper;
 
-    public TarifaDAO(TarifaMapper tarifaMapper) throws SQLException {
-        this.conexion = ConexionDB.getConexion();
+    public TarifaDAO(TarifaMapper tarifaMapper) {
         this.tarifaMapper = tarifaMapper;
     }
 
@@ -40,7 +39,8 @@ public class TarifaDAO implements ITarifaDAO {
         String sql = BASE_SELECT + " ORDER BY id ASC";
         List<TarifaResponseDTO> tarifas = new ArrayList<>();
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 Tarifa entidad = mapearFila(rs);
@@ -56,7 +56,8 @@ public class TarifaDAO implements ITarifaDAO {
     public Optional<TarifaResponseDTO> obtenerPorId(Integer id) {
         String sql = BASE_SELECT + " WHERE id = ?";
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -76,65 +77,25 @@ public class TarifaDAO implements ITarifaDAO {
     }
 
     @Override
-    public TarifaResponseDTO guardar(TarifaRequestDTO dto) {
+    public TarifaResponseDTO actualizarVigente(TarifaRequestDTO dto) {
         Tarifa tarifa = tarifaMapper.aEntidad(dto);
-        tarifa.setId(TARIFA_SINGLETON_ID);
-        String sql = "INSERT INTO tarifa (id, monto, actualizado_por) VALUES (?, ?, ?)";
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
-            stmt.setInt(1, tarifa.getId());
-            stmt.setBigDecimal(2, tarifa.getMonto());
-            if (tarifa.getActualizadoPor() != null) {
-                stmt.setInt(3, tarifa.getActualizadoPor());
-            } else {
-                stmt.setNull(3, Types.INTEGER);
-            }
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new IllegalStateException("Error al guardar tarifa: " + e.getMessage(), e);
-        }
-        return tarifaMapper.aResponseDTO(tarifa);
-    }
-
-    @Override
-    public boolean actualizar(Integer id, TarifaRequestDTO dto) {
-        Tarifa tarifa = tarifaMapper.aEntidad(dto);
-        int idFinal = id != null ? id : TARIFA_SINGLETON_ID;
-        tarifa.setId(idFinal);
-        String sql = "UPDATE tarifa SET monto = ?, actualizado_por = ? WHERE id = ?";
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             CallableStatement stmt = conexion.prepareCall("{CALL sp_actualizar_tarifa(?, ?, ?)}")) {
             stmt.setBigDecimal(1, tarifa.getMonto());
             if (tarifa.getActualizadoPor() != null) {
                 stmt.setInt(2, tarifa.getActualizadoPor());
             } else {
                 stmt.setNull(2, Types.INTEGER);
             }
-            stmt.setInt(3, tarifa.getId());
-            return stmt.executeUpdate() > 0;
+            stmt.registerOutParameter(3, Types.BOOLEAN);
+            stmt.execute();
+            if (!stmt.getBoolean(3)) {
+                throw new IllegalStateException("No existe la tarifa vigente para actualizar");
+            }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al actualizar tarifa: " + e.getMessage(), e);
         }
-    }
-
-    @Override
-    public TarifaResponseDTO actualizarVigente(TarifaRequestDTO dto) {
-        if (!actualizar(TARIFA_SINGLETON_ID, dto)) {
-            throw new IllegalStateException("No existe la tarifa vigente para actualizar");
-        }
         return obtenerTarifaActual().orElseThrow(() -> new IllegalStateException("No se encontró la tarifa vigente"));
-    }
-
-    @Override
-    public boolean eliminar(Integer id) {
-        String sql = "DELETE FROM tarifa WHERE id = ?";
-
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            throw new IllegalStateException("Error al eliminar tarifa: " + e.getMessage(), e);
-        }
     }
 
     private Tarifa mapearFila(ResultSet rs) throws SQLException {

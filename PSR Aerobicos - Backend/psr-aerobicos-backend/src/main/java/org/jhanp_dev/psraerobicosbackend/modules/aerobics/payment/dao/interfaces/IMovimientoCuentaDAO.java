@@ -1,6 +1,7 @@
 package org.jhanp_dev.psraerobicosbackend.modules.aerobics.payment.dao.interfaces;
 
-import org.jhanp_dev.psraerobicosbackend.modules.aerobics.payment.dto.request.MovimientoCuentaRequestDTO;
+import org.jhanp_dev.psraerobicosbackend.modules.aerobics.payment.dto.request.ActualizarMovimientoCuentaRequestDTO;
+import org.jhanp_dev.psraerobicosbackend.modules.aerobics.payment.dto.request.RegistrarMovimientoCuentaRequestDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.payment.dto.response.MovimientoCuentaResponseDTO;
 
 import java.util.List;
@@ -11,7 +12,7 @@ public interface IMovimientoCuentaDAO {
     List<MovimientoCuentaResponseDTO> listarPorPersonaId(Integer personaId);
     List<MovimientoCuentaResponseDTO> listarPorLlegadaId(Integer llegadaId);
     Optional<MovimientoCuentaResponseDTO> obtenerPorId(Integer id);
-    MovimientoCuentaResponseDTO guardar(MovimientoCuentaRequestDTO dto);
-    boolean actualizar(Integer id, MovimientoCuentaRequestDTO dto);
+    MovimientoCuentaResponseDTO guardar(RegistrarMovimientoCuentaRequestDTO dto);
+    boolean actualizar(Integer id, ActualizarMovimientoCuentaRequestDTO dto);
     boolean eliminar(Integer id);
 }

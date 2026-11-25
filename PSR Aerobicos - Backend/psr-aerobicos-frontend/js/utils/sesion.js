@@ -6,13 +6,18 @@ const SesionPSR = {
       return;
     }
 
-    const roles = Array.isArray(datosUsuario.roles) && datosUsuario.roles.length > 0
-      ? datosUsuario.roles
-      : ["MIEMBRO"];
+    const roles = Array.isArray(datosUsuario.roles)
+      ? datosUsuario.roles.filter(function (rol) { return Boolean(PSR_CONFIG.ROLES[rol]); })
+      : [];
+    const usuarioId = Number(datosUsuario.id || datosUsuario.usuarioId);
+    if (!Number.isInteger(usuarioId) || usuarioId <= 0 || roles.length === 0) {
+      return false;
+    }
 
     const usuarioNormalizado = {
-      id: datosUsuario.id || datosUsuario.usuarioId || 1,
-      personaId: datosUsuario.personaId || datosUsuario.id || 1,
+      sesionVersion: 2,
+      id: usuarioId,
+      personaId: datosUsuario.personaId || null,
       documento: datosUsuario.documento || datosUsuario.numeroDocumento || "",
       nombreCompleto: datosUsuario.nombreCompleto || datosUsuario.nombre || "Usuario",
       correo: datosUsuario.correo || "",
@@ -26,13 +31,20 @@ const SesionPSR = {
     } else {
       localStorage.removeItem(PSR_CONFIG.STORAGE_KEYS.ROL_ACTIVO);
     }
+    return true;
   },
 
   obtenerUsuario: function () {
     try {
       const texto = localStorage.getItem(PSR_CONFIG.STORAGE_KEYS.USUARIO);
       if (texto) {
-        return JSON.parse(texto);
+        const usuario = JSON.parse(texto);
+        if (usuario.sesionVersion === 2 && Number.isInteger(usuario.id) && usuario.id > 0 &&
+            Array.isArray(usuario.roles) && usuario.roles.some(function (rol) { return Boolean(PSR_CONFIG.ROLES[rol]); })) {
+          return usuario;
+        }
+        localStorage.removeItem(PSR_CONFIG.STORAGE_KEYS.USUARIO);
+        localStorage.removeItem(PSR_CONFIG.STORAGE_KEYS.ROL_ACTIVO);
       }
     } catch (e) {
       localStorage.removeItem(PSR_CONFIG.STORAGE_KEYS.USUARIO);
@@ -40,44 +52,29 @@ const SesionPSR = {
     return null;
   },
 
-  obtenerUsuarioOPorDefecto: function () {
-    const usuario = this.obtenerUsuario();
-    if (usuario) {
-      return usuario;
-    }
-    return {
-      id: 1,
-      personaId: 1,
-      documento: "1102812345",
-      nombreCompleto: "Elena Vargas",
-      correo: "elena.vargas@psr.com",
-      roles: ["ADMINISTRADOR", "RECEPCIONISTA"]
-    };
-  },
-
   estaAutenticado: function () {
     return this.obtenerUsuario() !== null;
   },
 
   obtenerRolesDisponibles: function () {
-    const usuario = this.obtenerUsuarioOPorDefecto();
+    const usuario = this.obtenerUsuario();
     if (Array.isArray(usuario.roles) && usuario.roles.length > 0) {
-      return usuario.roles;
+      return usuario.roles.filter(function (rol) { return Boolean(PSR_CONFIG.ROLES[rol]); });
     }
-    return ["ADMINISTRADOR"];
+    return [];
   },
 
   obtenerRolActivo: function () {
     const rolGuardado = localStorage.getItem(PSR_CONFIG.STORAGE_KEYS.ROL_ACTIVO);
-    if (rolGuardado && PSR_CONFIG.ROLES[rolGuardado]) {
+    const disponibles = this.obtenerRolesDisponibles();
+    if (rolGuardado && disponibles.indexOf(rolGuardado) !== -1) {
       return rolGuardado;
     }
-    const disponibles = this.obtenerRolesDisponibles();
-    return disponibles[0] || "ADMINISTRADOR";
+    return disponibles[0] || null;
   },
 
   establecerRolActivo: function (nuevoRol) {
-    if (PSR_CONFIG.ROLES[nuevoRol]) {
+    if (this.obtenerRolesDisponibles().indexOf(nuevoRol) !== -1) {
       localStorage.setItem(PSR_CONFIG.STORAGE_KEYS.ROL_ACTIVO, nuevoRol);
       return true;
     }
@@ -96,7 +93,7 @@ const SesionPSR = {
   obtenerRutaInicioRol: function (rol) {
     const clave = rol || this.obtenerRolActivo();
     const info = PSR_CONFIG.ROLES[clave];
-    return info ? info.home : "recepcion.html";
+    return info ? info.home : null;
   },
 
   cerrarSesion: function (rutaLogin) {

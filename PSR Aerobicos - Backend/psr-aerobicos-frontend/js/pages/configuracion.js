@@ -62,8 +62,11 @@ document.addEventListener("DOMContentLoaded", function () {
           displayFecha.textContent = ValidacionesPSR.formatearFecha(fechaAct);
         }
       }
-    } catch (e) {
-      // Mantiene el valor precargado en la vista cuando el servidor está apagado
+    } catch (error) {
+      if (displayVigente) displayVigente.textContent = "No disponible";
+      if (displayFecha) displayFecha.textContent = "Sin conexión";
+      if (inputMonto) inputMonto.value = "";
+      ValidacionesPSR.mostrarAlerta(alertBox, error.message, "error");
     }
   }
 
@@ -86,13 +89,11 @@ document.addEventListener("DOMContentLoaded", function () {
       try {
         await ClienteHttp.put("/tarifa", {
           monto: valMonto.valor,
-          usuarioId: SesionPSR.obtenerUsuarioOPorDefecto().id
+          usuarioId: SesionPSR.obtenerUsuario().id
         });
       } catch (error) {
-        if (!error.sinConexion) {
-          ValidacionesPSR.mostrarAlerta(alertBox, error.message, "error");
-          return;
-        }
+        ValidacionesPSR.mostrarAlerta(alertBox, error.message, "error");
+        return;
       }
 
       if (displayVigente) {

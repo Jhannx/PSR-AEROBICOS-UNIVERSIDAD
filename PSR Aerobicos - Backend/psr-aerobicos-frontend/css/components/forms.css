@@ -160,3 +160,18 @@
   border: 1px solid var(--emerald-border-soft);
   color: var(--emerald-400);
 }
+
+.psr-alert-conexion-global {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  z-index: 1090;
+  width: min(44rem, calc(100% - 2rem));
+  transform: translateX(-50%);
+  box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.3);
+}
+
+.psr-conexion-modal-ayuda {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}

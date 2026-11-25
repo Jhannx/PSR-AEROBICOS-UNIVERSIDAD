@@ -26,6 +26,9 @@ const ClienteHttp = {
         "No fue posible conectar con el servidor. Verifica que el backend y la base de datos estén en línea."
       );
       errorConexion.sinConexion = true;
+      if (typeof ValidacionesPSR !== "undefined") {
+        ValidacionesPSR.mostrarAlertaConexion(errorConexion.message);
+      }
       throw errorConexion;
     }
 
@@ -47,6 +50,9 @@ const ClienteHttp = {
       const errorHttp = new Error(mensajeServidor);
       errorHttp.codigo = (cuerpoJson && cuerpoJson.codigo) || respuesta.status;
       errorHttp.respuesta = cuerpoJson;
+      if (errorHttp.codigo === 503 && typeof ValidacionesPSR !== "undefined") {
+        ValidacionesPSR.mostrarAlertaConexion(mensajeServidor);
+      }
       throw errorHttp;
     }
 

@@ -1,8 +1,12 @@
 // Lógica del selector de rol activo (relación N:M usuario - rol)
 
 document.addEventListener("DOMContentLoaded", function () {
-  const usuario = SesionPSR.obtenerUsuarioOPorDefecto();
+  const usuario = SesionPSR.obtenerUsuario();
   const rolesDisponibles = SesionPSR.obtenerRolesDisponibles();
+  if (!usuario || rolesDisponibles.length === 0) {
+    window.location.href = "../index.html";
+    return;
+  }
   const rolActual = localStorage.getItem(PSR_CONFIG.STORAGE_KEYS.ROL_ACTIVO);
 
   const tituloSaludo = document.getElementById("role-greeting-title");
@@ -11,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const contenedorTarjetas = document.getElementById("role-cards-list");
   const btnConfirmar = document.getElementById("btn-confirmar-rol");
 
-  let rolSeleccionado = rolActual || rolesDisponibles[0] || "ADMINISTRADOR";
+  let rolSeleccionado = rolesDisponibles.indexOf(rolActual) !== -1 ? rolActual : rolesDisponibles[0];
 
   if (tituloSaludo) {
     tituloSaludo.textContent = rolActual

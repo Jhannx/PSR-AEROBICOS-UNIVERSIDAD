@@ -1,20 +1,22 @@
 package org.jhanp_dev.psraerobicosbackend.modules.person.service.interfaces;
 
-import org.jhanp_dev.psraerobicosbackend.modules.person.dto.request.PersonaRequestDTO;
+import org.jhanp_dev.psraerobicosbackend.modules.person.dto.request.ActualizarPersonaRequestDTO;
+import org.jhanp_dev.psraerobicosbackend.modules.person.dto.request.AutoregistroPersonaRequestDTO;
+import org.jhanp_dev.psraerobicosbackend.modules.person.dto.request.CrearPersonaRequestDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.person.dto.response.PersonaResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.person.dto.response.SaldoPersonaResponseDTO;
+import org.springframework.data.domain.Page;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface IPersonaService {
-    List<PersonaResponseDTO> listar(String buscar);
+    Page<PersonaResponseDTO> listar(String buscar, int page, int size);
     Optional<PersonaResponseDTO> obtener(Integer id);
     Optional<SaldoPersonaResponseDTO> obtenerSaldo(Integer id);
     /** Crea persona, contacto y cuenta; la clave inicial para ADMIN se deriva del documento. */
-    PersonaResponseDTO crearComoAdmin(PersonaRequestDTO request);
+    PersonaResponseDTO crearComoAdmin(CrearPersonaRequestDTO request);
     /** Crea persona, contacto y cuenta usando la contraseña elegida durante el autoregistro. */
-    PersonaResponseDTO autoregistrar(PersonaRequestDTO request);
-    PersonaResponseDTO actualizar(Integer id, PersonaRequestDTO request);
+    PersonaResponseDTO autoregistrar(AutoregistroPersonaRequestDTO request);
+    PersonaResponseDTO actualizar(Integer id, ActualizarPersonaRequestDTO request);
     boolean cambiarEstado(Integer id, boolean activo);
 }

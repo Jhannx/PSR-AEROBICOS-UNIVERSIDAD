@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    const valContactoNom = ValidacionesPSR.validarTextoObligatorio(inputContactoNombre.value, 100);
+    const valContactoNom = ValidacionesPSR.validarTextoObligatorio(inputContactoNombre.value, 150);
     if (!valContactoNom.valido) {
       ValidacionesPSR.mostrarAlerta(alertBox, "El nombre del contacto de emergencia es obligatorio.", "error");
       inputContactoNombre.focus();
@@ -112,16 +112,7 @@ document.addEventListener("DOMContentLoaded", function () {
       );
       formRegistro.reset();
     } catch (error) {
-      if (error.sinConexion) {
-        ValidacionesPSR.mostrarAlerta(
-          alertBox,
-          "Datos validados correctamente (" + payload.nombre + " " + payload.apellidos + "). Pendiente conexión con el servidor.",
-          "success"
-        );
-        formRegistro.reset();
-      } else {
-        ValidacionesPSR.mostrarAlerta(alertBox, error.message, "error");
-      }
+      ValidacionesPSR.mostrarAlerta(alertBox, error.message, "error");
     } finally {
       btnSubmit.disabled = false;
     }

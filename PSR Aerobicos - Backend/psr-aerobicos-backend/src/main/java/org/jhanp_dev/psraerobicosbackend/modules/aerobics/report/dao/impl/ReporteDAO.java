@@ -3,6 +3,7 @@ package org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dao.impl;
 import org.jhanp_dev.psraerobicosbackend.config.database.ConexionDB;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dao.interfaces.IReporteDAO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.AlumnoDestacadoResponseDTO;
+import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.AsistenciaPorFechaResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.AuditoriaMetodoPagoResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.EstadoCuentaParticipanteResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.MetodoPagoAltoRecaudoResponseDTO;
@@ -12,6 +13,8 @@ import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.Re
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.SesionDestacadaPorDiaResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.TurnoSinCancelacionResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.mapper.ReporteMapper;
+import org.jhanp_dev.psraerobicosbackend.modules.person.dto.response.SaldoPersonaResponseDTO;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
@@ -20,18 +23,16 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.time.LocalDate;
 
 @Repository
 public class ReporteDAO implements IReporteDAO {
 
-    private final Connection conexion;
     private final ReporteMapper reporteMapper;
 
-    public ReporteDAO(ReporteMapper reporteMapper) throws SQLException {
-        this.conexion = ConexionDB.getConexion();
+    public ReporteDAO(ReporteMapper reporteMapper) {
         this.reporteMapper = reporteMapper;
     }
 
@@ -53,17 +54,18 @@ public class ReporteDAO implements IReporteDAO {
                 )
                 ORDER BY promedio_por_transaccion DESC
                 """;
-        List<MetodoPagoAltoRecaudoResponseDTO> lista = new ArrayList<>();
+        List<MetodoPagoAltoRecaudoResponseDTO> metodosPagoAltoRecaudo = new ArrayList<>();
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                lista.add(reporteMapper.aMetodoPagoAltoRecaudoDTO(rs));
+                metodosPagoAltoRecaudo.add(reporteMapper.aMetodoPagoAltoRecaudoDTO(rs));
             }
         } catch (SQLException e) {
-            throw new IllegalStateException("Error al consultar metodos de pago de alto recaudo: " + e.getMessage(), e);
+            throw new IllegalStateException("Error al consultar métodos de pago de alto recaudo: " + e.getMessage(), e);
         }
-        return lista;
+        return metodosPagoAltoRecaudo;
     }
 
     @Override
@@ -91,21 +93,22 @@ public class ReporteDAO implements IReporteDAO {
                 )
                 ORDER BY total_asistencias DESC, monto_total_acumulado DESC
                 """;
-        List<AlumnoDestacadoResponseDTO> lista = new ArrayList<>();
+        List<AlumnoDestacadoResponseDTO> alumnosDestacados = new ArrayList<>();
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                lista.add(reporteMapper.aAlumnoDestacadoDTO(rs));
+                alumnosDestacados.add(reporteMapper.aAlumnoDestacadoDTO(rs));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al consultar alumnos destacados: " + e.getMessage(), e);
         }
-        return lista;
+        return alumnosDestacados;
     }
 
     @Override
-    public List<SesionDestacadaPorDiaResponseDTO> obtenerSesionesDestacadasPorDia() {
+    public List<SesionDestacadaPorDiaResponseDTO> obtenerSesionesDestacadasPorDia(Pageable pageable) {
         String sql = """
                 SELECT 
                     s.id AS sesion_id,
@@ -131,19 +134,55 @@ public class ReporteDAO implements IReporteDAO {
                         GROUP BY s2.id, s2.horario_id
                     ) AS sub
                 )
-                ORDER BY h.dia_semana ASC, total_asistencias_sesion DESC
+                ORDER BY h.dia_semana ASC, total_asistencias_sesion DESC, s.id DESC
+                LIMIT ? OFFSET ?
                 """;
-        List<SesionDestacadaPorDiaResponseDTO> lista = new ArrayList<>();
+        List<SesionDestacadaPorDiaResponseDTO> sesionesDestacadas = new ArrayList<>();
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                lista.add(reporteMapper.aSesionDestacadaPorDiaDTO(rs));
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, pageable.getPageSize());
+            stmt.setLong(2, pageable.getOffset());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    sesionesDestacadas.add(reporteMapper.aSesionDestacadaPorDiaDTO(rs));
+                }
             }
         } catch (SQLException e) {
-            throw new IllegalStateException("Error al consultar sesiones destacadas por dia: " + e.getMessage(), e);
+            throw new IllegalStateException("Error al consultar sesiones destacadas por día: " + e.getMessage(), e);
         }
-        return lista;
+        return sesionesDestacadas;
+    }
+
+    @Override
+    public long contarSesionesDestacadasPorDia() {
+        String sql = """
+                SELECT s.id
+                FROM sesion s
+                INNER JOIN horario h ON h.id = s.horario_id
+                LEFT JOIN llegada l ON l.sesion_id = s.id
+                LEFT JOIN asistencia a ON a.llegada_id = l.id
+                GROUP BY s.id, s.fecha, h.dia_semana, h.hora_inicio, h.hora_fin
+                HAVING COUNT(a.id) > (
+                    SELECT AVG(sub.asistencias_por_sesion)
+                    FROM (
+                        SELECT s2.id, s2.horario_id, COUNT(a2.id) AS asistencias_por_sesion
+                        FROM sesion s2
+                        INNER JOIN horario h2 ON h2.id = s2.horario_id
+                        LEFT JOIN llegada l2 ON l2.sesion_id = s2.id
+                        LEFT JOIN asistencia a2 ON a2.llegada_id = l2.id
+                        WHERE h2.dia_semana = h.dia_semana
+                        GROUP BY s2.id, s2.horario_id
+                    ) AS sub
+                )
+                """;
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement("SELECT COUNT(*) FROM (" + sql + ") AS sesiones_destacadas");
+             ResultSet rs = stmt.executeQuery()) {
+            return rs.next() ? rs.getLong(1) : 0L;
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al contar sesiones destacadas por día: " + e.getMessage(), e);
+        }
     }
 
     @Override
@@ -171,17 +210,18 @@ public class ReporteDAO implements IReporteDAO {
                 GROUP BY h.id, h.dia_semana, h.hora_inicio, h.hora_fin
                 ORDER BY h.dia_semana, h.hora_inicio
                 """;
-        List<TurnoSinCancelacionResponseDTO> lista = new ArrayList<>();
+        List<TurnoSinCancelacionResponseDTO> turnosSinCancelaciones = new ArrayList<>();
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                lista.add(reporteMapper.aTurnoSinCancelacionDTO(rs));
+                turnosSinCancelaciones.add(reporteMapper.aTurnoSinCancelacionDTO(rs));
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al consultar turnos sin cancelaciones: " + e.getMessage(), e);
         }
-        return lista;
+        return turnosSinCancelaciones;
     }
 
     @Override
@@ -199,23 +239,24 @@ public class ReporteDAO implements IReporteDAO {
                    AND AVG(mc.monto_abonado) >= (SELECT MIN(monto) FROM tarifa)
                 ORDER BY total_operaciones DESC
                 """;
-        List<AuditoriaMetodoPagoResponseDTO> lista = new ArrayList<>();
+        List<AuditoriaMetodoPagoResponseDTO> auditoriaMetodosPago = new ArrayList<>();
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setInt(1, minOperaciones);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    lista.add(reporteMapper.aAuditoriaMetodoPagoDTO(rs));
+                    auditoriaMetodosPago.add(reporteMapper.aAuditoriaMetodoPagoDTO(rs));
                 }
             }
         } catch (SQLException e) {
-            throw new IllegalStateException("Error al consultar auditoria de metodos de pago: " + e.getMessage(), e);
+            throw new IllegalStateException("Error al consultar auditoría de métodos de pago: " + e.getMessage(), e);
         }
-        return lista;
+        return auditoriaMetodosPago;
     }
 
     @Override
-    public List<PagoAnticipadoResponseDTO> obtenerPagosAnticipados() {
+    public List<PagoAnticipadoResponseDTO> obtenerPagosAnticipados(Pageable pageable) {
         String sql = """
                 SELECT 
                     mc.id AS movimiento_id,
@@ -227,23 +268,41 @@ public class ReporteDAO implements IReporteDAO {
                 FROM movimiento_cuenta mc
                 INNER JOIN persona p ON p.id = mc.persona_id
                 WHERE mc.tipo_movimiento = 'ABONO'
-                  AND mc.monto_abonado > (
-                      SELECT monto 
-                      FROM tarifa 
-                      WHERE id = 1
-                  )
+                  AND mc.monto_abonado > (SELECT monto FROM tarifa WHERE id = 1)
+                ORDER BY mc.fecha_hora DESC, mc.id DESC
+                LIMIT ? OFFSET ?
                 """;
-        List<PagoAnticipadoResponseDTO> lista = new ArrayList<>();
+        List<PagoAnticipadoResponseDTO> pagosAnticipados = new ArrayList<>();
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                lista.add(reporteMapper.aPagoAnticipadoDTO(rs));
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, pageable.getPageSize());
+            stmt.setLong(2, pageable.getOffset());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    pagosAnticipados.add(reporteMapper.aPagoAnticipadoDTO(rs));
+                }
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al consultar pagos anticipados: " + e.getMessage(), e);
         }
-        return lista;
+        return pagosAnticipados;
+    }
+
+    @Override
+    public long contarPagosAnticipados() {
+        String sql = """
+                SELECT COUNT(*)
+                FROM movimiento_cuenta mc
+                WHERE mc.tipo_movimiento = 'ABONO'
+                  AND mc.monto_abonado > (SELECT monto FROM tarifa WHERE id = 1)
+                """;
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+            return rs.next() ? rs.getLong(1) : 0L;
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al contar pagos anticipados: " + e.getMessage(), e);
+        }
     }
 
     @Override
@@ -260,21 +319,22 @@ public class ReporteDAO implements IReporteDAO {
                 HAVING COUNT(mc.id) >= 2
                 ORDER BY total_recaudado DESC
                 """;
-        List<MetodoPagoMasUtilizadoResponseDTO> lista = new ArrayList<>();
+        List<MetodoPagoMasUtilizadoResponseDTO> metodosPagoMasUtilizados = new ArrayList<>();
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql);
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                lista.add(reporteMapper.aMetodoPagoMasUtilizadoDTO(rs));
+                metodosPagoMasUtilizados.add(reporteMapper.aMetodoPagoMasUtilizadoDTO(rs));
             }
         } catch (SQLException e) {
-            throw new IllegalStateException("Error al consultar metodos de pago mas utilizados: " + e.getMessage(), e);
+            throw new IllegalStateException("Error al consultar métodos de pago más utilizados: " + e.getMessage(), e);
         }
-        return lista;
+        return metodosPagoMasUtilizados;
     }
 
     @Override
-    public List<EstadoCuentaParticipanteResponseDTO> obtenerEstadoCuentaPorDocumento(String numeroDocumento) {
+    public List<EstadoCuentaParticipanteResponseDTO> obtenerEstadoCuentaPorDocumento(String numeroDocumento, Pageable pageable) {
         String sql = """
                 SELECT 
                     mc.fecha_hora,
@@ -289,83 +349,142 @@ public class ReporteDAO implements IReporteDAO {
                 INNER JOIN persona p ON p.id = mc.persona_id
                 INNER JOIN usuario u ON u.id = mc.usuario_id
                 WHERE p.numero_documento = ?
-                ORDER BY mc.fecha_hora DESC
+                ORDER BY mc.fecha_hora DESC, mc.id DESC
+                LIMIT ? OFFSET ?
                 """;
-        List<EstadoCuentaParticipanteResponseDTO> lista = new ArrayList<>();
+        List<EstadoCuentaParticipanteResponseDTO> movimientosCuenta = new ArrayList<>();
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setString(1, numeroDocumento);
+            stmt.setInt(2, pageable.getPageSize());
+            stmt.setLong(3, pageable.getOffset());
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    lista.add(reporteMapper.aEstadoCuentaParticipanteDTO(rs));
+                    movimientosCuenta.add(reporteMapper.aEstadoCuentaParticipanteDTO(rs));
                 }
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al consultar estado de cuenta por documento: " + e.getMessage(), e);
         }
-        return lista;
+        return movimientosCuenta;
     }
 
     @Override
-    public List<RecaudoDiarioResponseDTO> obtenerRecaudoDiario() {
+    public long contarEstadoCuentaPorDocumento(String numeroDocumento) {
+        String sql = """
+                SELECT COUNT(*)
+                FROM movimiento_cuenta mc
+                INNER JOIN persona p ON p.id = mc.persona_id
+                INNER JOIN usuario u ON u.id = mc.usuario_id
+                WHERE p.numero_documento = ?
+                """;
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setString(1, numeroDocumento);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() ? rs.getLong(1) : 0L;
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al contar movimientos del estado de cuenta: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<RecaudoDiarioResponseDTO> obtenerRecaudoDiario(Pageable pageable) {
         String sql = """
                 SELECT 
-                    DATE_FORMAT(mc.fecha_hora, '%d/%m/%Y') AS dia,
+                    DATE_FORMAT(DATE(mc.fecha_hora), '%d/%m/%Y') AS dia,
                     COUNT(mc.id) AS total_pagos,
                     SUM(mc.monto_abonado) AS recaudo_dia
                 FROM movimiento_cuenta mc
                 WHERE mc.tipo_movimiento = 'ABONO'
-                GROUP BY dia
-                ORDER BY MIN(mc.fecha_hora) DESC
+                GROUP BY DATE_FORMAT(DATE(mc.fecha_hora), '%d/%m/%Y')
+                ORDER BY MAX(mc.fecha_hora) DESC
+                LIMIT ? OFFSET ?
                 """;
-        List<RecaudoDiarioResponseDTO> lista = new ArrayList<>();
+        List<RecaudoDiarioResponseDTO> recaudoDiario = new ArrayList<>();
 
-        try (PreparedStatement stmt = conexion.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                lista.add(reporteMapper.aRecaudoDiarioDTO(rs));
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, pageable.getPageSize());
+            stmt.setLong(2, pageable.getOffset());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    recaudoDiario.add(reporteMapper.aRecaudoDiarioDTO(rs));
+                }
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al consultar recaudo diario: " + e.getMessage(), e);
         }
-        return lista;
+        return recaudoDiario;
     }
 
     @Override
-    public List<org.jhanp_dev.psraerobicosbackend.modules.person.dto.response.SaldoPersonaResponseDTO> obtenerSaldosPersonas() {
-        String sql = "SELECT persona_id, numero_documento, nombre_completo, total_abonado, total_cobrado, saldo, estado_cuenta FROM vista_saldo_persona ORDER BY nombre_completo";
-        List<org.jhanp_dev.psraerobicosbackend.modules.person.dto.response.SaldoPersonaResponseDTO> lista = new ArrayList<>();
-        try (PreparedStatement stmt = conexion.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) lista.add(org.jhanp_dev.psraerobicosbackend.modules.person.dto.response.SaldoPersonaResponseDTO.builder()
-                    .personaId(rs.getInt("persona_id"))
-                    .numeroDocumento(rs.getString("numero_documento"))
-                    .nombreCompleto(rs.getString("nombre_completo"))
-                    .totalAbonado(rs.getBigDecimal("total_abonado"))
-                    .totalCobrado(rs.getBigDecimal("total_cobrado"))
-                    .saldo(rs.getBigDecimal("saldo"))
-                    .estadoCuenta(rs.getString("estado_cuenta"))
-                    .build());
+    public long contarRecaudoDiario() {
+        String sql = "SELECT COUNT(DISTINCT DATE(fecha_hora)) FROM movimiento_cuenta WHERE tipo_movimiento = 'ABONO'";
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+            return rs.next() ? rs.getLong(1) : 0L;
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al contar días de recaudo: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<SaldoPersonaResponseDTO> obtenerSaldosPersonas(Pageable pageable) {
+        String sql = "SELECT persona_id, numero_documento, nombre_completo, total_abonado, total_cobrado, saldo, estado_cuenta FROM vista_saldo_persona ORDER BY nombre_completo, persona_id LIMIT ? OFFSET ?";
+        List<SaldoPersonaResponseDTO> saldosPersonas = new ArrayList<>();
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setInt(1, pageable.getPageSize());
+            stmt.setLong(2, pageable.getOffset());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    saldosPersonas.add(SaldoPersonaResponseDTO.builder()
+                            .personaId(rs.getInt("persona_id"))
+                            .numeroDocumento(rs.getString("numero_documento"))
+                            .nombreCompleto(rs.getString("nombre_completo"))
+                            .totalAbonado(rs.getBigDecimal("total_abonado"))
+                            .totalCobrado(rs.getBigDecimal("total_cobrado"))
+                            .saldo(rs.getBigDecimal("saldo"))
+                            .estadoCuenta(rs.getString("estado_cuenta"))
+                            .build());
+                }
+            }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al consultar saldos de personas: " + e.getMessage(), e);
         }
-        return lista;
+        return saldosPersonas;
     }
 
     @Override
-    public List<org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.AsistenciaPorFechaResponseDTO> obtenerAsistenciasPorFecha(LocalDate fecha) {
-        List<org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.AsistenciaPorFechaResponseDTO> lista = new ArrayList<>();
-        try (CallableStatement stmt = conexion.prepareCall("{CALL sp_reporte_asistencias_por_fecha(?)}")) {
+    public long contarSaldosPersonas() {
+        String sql = "SELECT COUNT(*) FROM vista_saldo_persona";
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+            return rs.next() ? rs.getLong(1) : 0L;
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al contar saldos de personas: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<AsistenciaPorFechaResponseDTO> obtenerAsistenciasPorFecha(LocalDate fecha) {
+        List<AsistenciaPorFechaResponseDTO> asistenciasPorFecha = new ArrayList<>();
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             CallableStatement stmt = conexion.prepareCall("{CALL sp_reporte_asistencias_por_fecha(?)}")) {
             stmt.setDate(1, Date.valueOf(fecha));
             boolean tieneResultados = stmt.execute();
             while (tieneResultados) {
                 try (ResultSet rs = stmt.getResultSet()) {
-                    while (rs.next()) lista.add(reporteMapper.aAsistenciaPorFechaDTO(rs));
+                    while (rs.next()) asistenciasPorFecha.add(reporteMapper.aAsistenciaPorFechaDTO(rs));
                 }
                 tieneResultados = stmt.getMoreResults();
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Error al consultar asistencias por fecha: " + e.getMessage(), e);
         }
-        return lista;
+        return asistenciasPorFecha;
     }
 }

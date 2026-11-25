@@ -39,21 +39,21 @@
           <div class="col-12 col-lg-7">
             <section class="psr-card text-center d-flex flex-column gap-3">
               <div>
-                <div class="member-avatar-lg" id="miembro-avatar-initials">CT</div>
-                <h2 class="fs-4 fw-bold text-white mb-1" id="miembro-nombre-completo">Camila Andrea Torres</h2>
+                <div class="member-avatar-lg" id="miembro-avatar-initials">--</div>
+                <h2 class="fs-4 fw-bold text-white mb-1" id="miembro-nombre-completo">Cargando perfil...</h2>
                 <p class="small text-secondary font-monospace mb-1" id="miembro-documento-label">
-                  Doc: CC 1067890123 · Tel: 3004567890
+                  Doc: — · Tel: —
                 </p>
                 <p class="small text-secondary mb-0">
                   <i class="ph-bold ph-cake"></i>
-                  <span id="miembro-fecha-nacimiento">14 de mayo de 1999</span>
+                  <span id="miembro-fecha-nacimiento">—</span>
                 </p>
               </div>
 
               <div>
                 <span class="psr-badge badge-emerald py-2 px-3 fs-6" id="miembro-estado-cuenta-badge">
                   <i class="ph-bold ph-check-circle"></i>
-                  <span>Cuenta al día · Saldo: $0</span>
+                  <span>Consultando estado de cuenta...</span>
                 </span>
               </div>
 
@@ -68,7 +68,7 @@
                 <div class="col-6">
                   <div class="credit-sessions-box">
                     <p class="small text-secondary mb-1">Tarifa por Sesión</p>
-                    <p class="fs-4 fw-bold mb-0" style="color: var(--emerald-400);" id="miembro-tarifa-hoy">$5.000</p>
+                    <p class="fs-4 fw-bold mb-0" style="color: var(--emerald-400);" id="miembro-tarifa-hoy">$0</p>
                   </div>
                 </div>
               </div>
@@ -92,13 +92,13 @@
             <section class="psr-card d-flex flex-column gap-2">
               <div class="d-flex align-items-center justify-content-between">
                 <h3 class="fs-6 fw-bold text-white mb-0">Tu Turno Hoy</h3>
-                <span class="psr-badge badge-amber" id="miembro-turno-estado">En espera</span>
+                <span class="psr-badge badge-neutral" id="miembro-turno-estado">Sin turno</span>
               </div>
               <div class="d-flex align-items-center gap-3 py-2">
-                <div class="person-avatar fs-5" style="width: 3.25rem; height: 3.25rem;" id="miembro-turno-posicion">#1</div>
+                <div class="person-avatar fs-5" style="width: 3.25rem; height: 3.25rem;" id="miembro-turno-posicion">—</div>
                 <div>
-                  <p class="fw-bold text-white mb-0">Sesión 06:00 p. m. – 07:00 p. m.</p>
-                  <p class="small text-secondary mb-0">Llegada registrada a las 05:52 p. m.</p>
+                  <p class="fw-bold text-white mb-0" id="miembro-turno-sesion">Sin llegada registrada hoy</p>
+                  <p class="small text-secondary mb-0" id="miembro-turno-hora">Marca tu llegada para recibir un turno</p>
                 </div>
               </div>
             </section>
@@ -113,13 +113,17 @@
                 <span class="psr-badge badge-neutral">1 : 1</span>
               </div>
 
+              <div id="miembro-alert-box" class="psr-alert psr-alert-success d-none" role="alert">
+                <span>Datos actualizados correctamente.</span>
+              </div>
+
               <div class="psr-field">
                 <label for="miembro-contacto-nombre" class="psr-label">Nombre Completo</label>
                 <input
                   type="text"
                   id="miembro-contacto-nombre"
                   class="psr-input"
-                  value="Luis Torres"
+                  placeholder="Nombre del contacto"
                   maxlength="100"
                 >
               </div>
@@ -131,7 +135,7 @@
                   id="miembro-contacto-telefono"
                   class="psr-input"
                   inputmode="numeric"
-                  value="3102223344"
+                  placeholder="Ej: 3102223344"
                   maxlength="20"
                 >
               </div>
@@ -142,7 +146,7 @@
                   type="text"
                   id="miembro-contacto-obs"
                   class="psr-input"
-                  value="Padre · Sin alergias"
+                  placeholder="Parentesco o indicación médica"
                   maxlength="255"
                 >
               </div>

@@ -1,6 +1,6 @@
 package org.jhanp_dev.psraerobicosbackend.modules.person.mapper;
 
-import org.jhanp_dev.psraerobicosbackend.modules.person.dto.request.PersonaRequestDTO;
+import org.jhanp_dev.psraerobicosbackend.modules.person.dto.request.CrearPersonaRequestDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.person.dto.response.PersonaResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.person.dto.response.ContactoEmergenciaResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.person.entity.Persona;
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PersonaMapper {
 
-    public Persona aEntidad(PersonaRequestDTO dto) {
+    public Persona aEntidad(CrearPersonaRequestDTO dto) {
         if (dto == null) {
             return null;
         }

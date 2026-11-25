@@ -9,6 +9,7 @@ import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.Pa
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.RecaudoDiarioResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.SesionDestacadaPorDiaResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.TurnoSinCancelacionResponseDTO;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.time.LocalDate;
@@ -18,14 +19,14 @@ import org.jhanp_dev.psraerobicosbackend.modules.aerobics.report.dto.response.As
 public interface IReporteService {
     List<MetodoPagoAltoRecaudoResponseDTO> obtenerMetodosPagoAltoRecaudo();
     List<AlumnoDestacadoResponseDTO> obtenerAlumnosDestacados();
-    List<SesionDestacadaPorDiaResponseDTO> obtenerSesionesDestacadasPorDia();
+    Page<SesionDestacadaPorDiaResponseDTO> obtenerSesionesDestacadasPorDia(int page, int size);
     List<TurnoSinCancelacionResponseDTO> obtenerTurnosSinCancelaciones();
     List<AuditoriaMetodoPagoResponseDTO> obtenerAuditoriaMetodosPago(int minOperaciones);
-    List<PagoAnticipadoResponseDTO> obtenerPagosAnticipados();
+    Page<PagoAnticipadoResponseDTO> obtenerPagosAnticipados(int page, int size);
     List<MetodoPagoMasUtilizadoResponseDTO> obtenerMetodosPagoMasUtilizados();
-    List<EstadoCuentaParticipanteResponseDTO> obtenerEstadoCuentaPorDocumento(String numeroDocumento);
-    List<RecaudoDiarioResponseDTO> obtenerRecaudoDiario();
-    List<SaldoPersonaResponseDTO> obtenerSaldosPersonas();
+    Page<EstadoCuentaParticipanteResponseDTO> obtenerEstadoCuentaPorDocumento(String numeroDocumento, int page, int size);
+    Page<RecaudoDiarioResponseDTO> obtenerRecaudoDiario(int page, int size);
+    Page<SaldoPersonaResponseDTO> obtenerSaldosPersonas(int page, int size);
     List<AsistenciaPorFechaResponseDTO> obtenerAsistenciasPorFecha(LocalDate fecha);
 }
 

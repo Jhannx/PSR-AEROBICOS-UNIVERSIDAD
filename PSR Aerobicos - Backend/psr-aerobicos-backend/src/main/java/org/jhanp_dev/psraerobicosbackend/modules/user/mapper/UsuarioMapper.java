@@ -1,24 +1,11 @@
 package org.jhanp_dev.psraerobicosbackend.modules.user.mapper;
 
-import org.jhanp_dev.psraerobicosbackend.modules.user.dto.request.UsuarioRequestDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.user.dto.response.UsuarioResponseDTO;
 import org.jhanp_dev.psraerobicosbackend.modules.user.entity.Usuario;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UsuarioMapper {
-
-    public Usuario aEntidad(UsuarioRequestDTO dto) {
-        if (dto == null) {
-            return null;
-        }
-        return Usuario.builder()
-                .numeroDocumento(dto.getDocumento() != null ? dto.getDocumento() : dto.getIdentificador())
-                .correo(dto.getCorreo())
-                .personaId(dto.getPersonaId())
-                .activo(true)
-                .build();
-    }
 
     public UsuarioResponseDTO aResponseDTO(Usuario entidad) {
         if (entidad == null) {
@@ -44,10 +31,5 @@ public class UsuarioMapper {
         return dto;
     }
 
-    public String obtenerIdentificador(org.jhanp_dev.psraerobicosbackend.modules.user.dto.request.UsuarioRequestDTO dto) {
-        if (dto == null) return null;
-        if (dto.getIdentificador() != null) return dto.getIdentificador();
-        return dto.getDocumento();
-    }
 }
 

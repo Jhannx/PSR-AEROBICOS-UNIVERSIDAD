@@ -16,19 +16,20 @@ import java.util.List;
 
 @Repository
 public class FilaDAO implements IFilaDAO {
-    private final Connection conexion;
     private final FilaMapper mapper;
 
-    public FilaDAO(FilaMapper mapper) throws SQLException {
-        this.conexion = ConexionDB.getConexion();
+    public FilaDAO(FilaMapper mapper) {
         this.mapper = mapper;
     }
 
     @Override
     public List<FilaRecepcionResponseDTO> listarFilaRecepcion() {
-        String sql = "SELECT * FROM vista_fila_hoy ORDER BY hora_llegada ASC";
+        String sql = "SELECT * FROM vista_fila_hoy "
+                + "WHERE fecha_sesion = CURRENT_DATE AND sesion_cancelada = FALSE "
+                + "ORDER BY hora_llegada ASC";
         List<FilaRecepcionResponseDTO> resultado = new ArrayList<>();
-        try (PreparedStatement stmt = conexion.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) resultado.add(mapper.aRecepcion(rs));
             return resultado;
         } catch (SQLException e) {
@@ -38,9 +39,11 @@ public class FilaDAO implements IFilaDAO {
 
     @Override
     public List<FilaEsperaResponseDTO> listarFilaEspera() {
-        String sql = "SELECT * FROM vista_fila_espera ORDER BY hora_llegada ASC";
+        String sql = "SELECT * FROM vista_fila_espera "
+                + "WHERE fecha_sesion = CURRENT_DATE ORDER BY hora_llegada ASC";
         List<FilaEsperaResponseDTO> resultado = new ArrayList<>();
-        try (PreparedStatement stmt = conexion.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+        try (Connection conexion = ConexionDB.getInstancia().getConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) resultado.add(mapper.aEspera(rs));
             return resultado;
         } catch (SQLException e) {

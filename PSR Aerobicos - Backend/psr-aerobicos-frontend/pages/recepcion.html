@@ -31,11 +31,11 @@
               </h1>
               <span class="psr-badge badge-emerald" id="recepcion-session-badge">
                 <i class="ph-fill ph-circle"></i>
-                <span>Sesión 06:00 p. m. – 07:00 p. m.</span>
+                <span id="recepcion-session-badge-text">Fila activa de hoy</span>
               </span>
             </div>
             <p class="page-subtitle" id="recepcion-date-subtitle">
-              Tarifa vigente por sesión: <strong class="text-white" id="recepcion-tarifa-label">$5.000</strong> · Instructora: Valeria Gómez
+              Tarifa vigente por sesión: <strong class="text-white" id="recepcion-tarifa-label">Cargando...</strong>
             </p>
           </div>
 
@@ -63,8 +63,8 @@
               <span>En Fila Hoy</span>
               <i class="ph-bold ph-users"></i>
             </p>
-            <p class="kpi-value" id="kpi-cola-total">4</p>
-            <p class="kpi-subtext">2 sin atender · 2 atendidos</p>
+            <p class="kpi-value" id="kpi-cola-total">0</p>
+            <p class="kpi-subtext" id="kpi-cola-subtext">0 sin atender · 0 atendidos</p>
           </div>
 
           <div class="kpi-card">
@@ -72,7 +72,7 @@
               <span>Asistencias Confirmadas</span>
               <i class="ph-bold ph-check-circle"></i>
             </p>
-            <p class="kpi-value" id="kpi-cola-asistencias">2</p>
+            <p class="kpi-value" id="kpi-cola-asistencias">0</p>
             <p class="kpi-subtext">Actualizado por trigger de sesión</p>
           </div>
 
@@ -81,7 +81,7 @@
               <span>Recaudo de esta Sesión</span>
               <i class="ph-bold ph-coins"></i>
             </p>
-            <p class="kpi-value is-emerald" id="kpi-recaudo-sesion">$10.000</p>
+            <p class="kpi-value is-emerald" id="kpi-recaudo-sesion">$0</p>
             <p class="kpi-subtext">Cobro devengado en clase</p>
           </div>
 
@@ -90,18 +90,18 @@
               <span>Recaudo en Caja Hoy</span>
               <i class="ph-bold ph-wallet"></i>
             </p>
-            <p class="kpi-value is-emerald" id="kpi-recaudo-caja">$25.000</p>
-            <p class="kpi-subtext">Incluye abonos por adelantado</p>
+            <p class="kpi-value is-emerald" id="kpi-recaudo-caja">$0</p>
+            <p class="kpi-subtext">Incluye abonos registrados</p>
           </div>
         </section>
 
         <!-- Barra de filtros por estado de atención y cuenta -->
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
           <div class="filter-pills" id="recepcion-filter-pills">
-            <button type="button" class="filter-pill is-active" data-filter="all">TODOS (4)</button>
-            <button type="button" class="filter-pill" data-filter="pending">SIN ATENDER (2)</button>
-            <button type="button" class="filter-pill" data-filter="balance">SALDO PENDIENTE (1)</button>
-            <button type="button" class="filter-pill" data-filter="settled">AL DÍA (3)</button>
+            <button type="button" class="filter-pill is-active" data-filter="all">TODOS (0)</button>
+            <button type="button" class="filter-pill" data-filter="pending">SIN ATENDER (0)</button>
+            <button type="button" class="filter-pill" data-filter="balance">SALDO PENDIENTE (0)</button>
+            <button type="button" class="filter-pill" data-filter="settled">AL DÍA (0)</button>
           </div>
 
           <div class="input-icon-wrapper" style="max-width: 280px;">
@@ -122,147 +122,9 @@
 
         <!-- Listado de la cola del día (vista_fila_hoy) -->
         <section class="queue-list" id="recepcion-queue-list">
-          <!-- Fila 1: Participante pendiente de cobro y confirmación -->
-          <article class="queue-row" data-llegada-id="1" data-persona-id="1">
-            <span class="queue-position">#1</span>
-
-            <div class="queue-person-col">
-              <div class="d-flex align-items-center gap-2 flex-wrap">
-                <p class="queue-person-name">Camila Andrea Torres</p>
-                <span class="psr-badge badge-amber">Sin atender</span>
-              </div>
-              <p class="queue-person-meta">
-                Doc: CC 1067890123 · Llegada: 05:52 p. m. · Método: TERMINAL · A pagar hoy: <strong class="text-white">$5.000</strong>
-              </p>
-            </div>
-
-            <div class="queue-payment-col">
-              <div class="currency-input-group" style="width: 125px;">
-                <span class="currency-prefix">$</span>
-                <input type="text" inputmode="numeric" value="5000" maxlength="10" aria-label="Monto recibido">
-              </div>
-
-              <select class="psr-select py-2" style="width: 145px;" aria-label="Método de pago">
-                <option value="EFECTIVO">Efectivo</option>
-                <option value="TRANSFERENCIA">Transferencia</option>
-              </select>
-            </div>
-
-            <div class="queue-actions-col">
-              <button type="button" class="btn-psr-secondary py-2 px-3" title="Registrar pago">
-                <i class="ph-bold ph-currency-dollar"></i>
-                <span>Cobrar</span>
-              </button>
-              <button
-                type="button"
-                class="btn-psr-secondary py-2 px-3"
-                data-bs-toggle="modal"
-                data-bs-target="#modalPagoAdelantado"
-                title="Abonar sesiones por adelantado"
-              >
-                <i class="ph-bold ph-calendar-plus"></i>
-                <span>Adelanto</span>
-              </button>
-              <button type="button" class="btn-psr-primary py-2 px-3" title="Confirmar asistencia">
-                <i class="ph-bold ph-check"></i>
-                <span>Confirmar</span>
-              </button>
-            </div>
-          </article>
-
-          <!-- Fila 2: Participante con saldo a favor (cubierto por crédito) -->
-          <article class="queue-row" data-llegada-id="2" data-persona-id="2">
-            <span class="queue-position">#2</span>
-
-            <div class="queue-person-col">
-              <div class="d-flex align-items-center gap-2 flex-wrap">
-                <p class="queue-person-name">Mateo Hernández Ruiz</p>
-                <span class="psr-badge badge-blue">Cubierto por saldo (+$15.000)</span>
-              </div>
-              <p class="queue-person-meta">
-                Doc: CC 1067912345 · Llegada: 05:54 p. m. · Método: QR · A pagar hoy: <strong class="text-white">$0</strong>
-              </p>
-            </div>
-
-            <div class="queue-actions-col">
-              <button
-                type="button"
-                class="btn-psr-secondary py-2 px-3"
-                data-bs-toggle="modal"
-                data-bs-target="#modalPagoAdelantado"
-              >
-                <i class="ph-bold ph-calendar-plus"></i>
-                <span>Adelanto</span>
-              </button>
-              <button type="button" class="btn-psr-primary py-2 px-3">
-                <i class="ph-bold ph-check"></i>
-                <span>Confirmar Asistencia</span>
-              </button>
-            </div>
-          </article>
-
-          <!-- Fila 3: Participante con deuda pendiente -->
-          <article class="queue-row is-debt" data-llegada-id="3" data-persona-id="3">
-            <span class="queue-position">#3</span>
-
-            <div class="queue-person-col">
-              <div class="d-flex align-items-center gap-2 flex-wrap">
-                <p class="queue-person-name">Valentina Mendoza Pineda</p>
-                <span class="psr-badge badge-rose">Debe $5.000 anterior</span>
-              </div>
-              <p class="queue-person-meta">
-                Doc: CC 1067954321 · Llegada: 05:56 p. m. · Método: MANUAL · Total con hoy: <strong class="text-white">$10.000</strong>
-              </p>
-            </div>
-
-            <div class="queue-payment-col">
-              <div class="currency-input-group" style="width: 125px;">
-                <span class="currency-prefix">$</span>
-                <input type="text" inputmode="numeric" value="10000" maxlength="10" aria-label="Monto recibido">
-              </div>
-
-              <select class="psr-select py-2" style="width: 145px;" aria-label="Método de pago">
-                <option value="EFECTIVO">Efectivo</option>
-                <option value="TRANSFERENCIA">Transferencia</option>
-              </select>
-            </div>
-
-            <div class="queue-actions-col">
-              <button type="button" class="btn-psr-secondary py-2 px-3">
-                <i class="ph-bold ph-currency-dollar"></i>
-                <span>Cobrar</span>
-              </button>
-              <button type="button" class="btn-psr-primary py-2 px-3">
-                <i class="ph-bold ph-check"></i>
-                <span>Confirmar</span>
-              </button>
-            </div>
-          </article>
-
-          <!-- Fila 4: Participante ya atendida -->
-          <article class="queue-row is-attended" data-llegada-id="4" data-persona-id="5">
-            <span class="queue-position">#4</span>
-
-            <div class="queue-person-col">
-              <div class="d-flex align-items-center gap-2 flex-wrap">
-                <p class="queue-person-name">Sebastián Castro Díaz</p>
-                <span class="psr-badge badge-emerald">
-                  <i class="ph-bold ph-check"></i>
-                  <span>Asistencia confirmada · Pagó $5.000</span>
-                </span>
-              </div>
-              <p class="queue-person-meta">
-                Doc: CC 1067811223 · Llegada: 05:49 p. m. · Marcado: 05:51 p. m. · Efectivo
-              </p>
-            </div>
-
-            <div class="queue-actions-col">
-              <button type="button" class="btn-psr-outline-danger" title="Anular confirmación">
-                <i class="ph-bold ph-arrow-counter-clockwise"></i>
-                <span>Anular</span>
-              </button>
-            </div>
-          </article>
+          <div class="psr-card text-center text-secondary py-4">
+            Cargando fila de recepción...
+          </div>
         </section>
       </div>
     </main>
@@ -332,7 +194,7 @@
         <form id="form-pago-adelantado" novalidate>
           <div class="modal-body d-flex flex-column gap-3">
             <p class="small text-secondary mb-0">
-              Participante: <strong class="text-white" id="adelanto-persona-nombre">Camila Andrea Torres</strong>
+              Participante: <strong class="text-white" id="adelanto-persona-nombre">—</strong>
             </p>
 
             <div class="row g-2">
@@ -368,8 +230,8 @@
                     id="adelanto-monto-recibido"
                     class="psr-input"
                     inputmode="numeric"
-                    value="15000"
-                    maxlength="10"
+                    value="5000"
+                    maxlength="8"
                     required
                   >
                 </div>
@@ -382,8 +244,8 @@
                     id="adelanto-monto-abonado"
                     class="psr-input"
                     inputmode="numeric"
-                    value="15000"
-                    maxlength="10"
+                    value="5000"
+                    maxlength="8"
                     required
                   >
                 </div>
@@ -396,7 +258,7 @@
                 type="text"
                 id="adelanto-nota"
                 class="psr-input"
-                placeholder="Pago por adelantado (3 sesiones)"
+                placeholder="Pago por adelantado"
                 maxlength="255"
               >
             </div>

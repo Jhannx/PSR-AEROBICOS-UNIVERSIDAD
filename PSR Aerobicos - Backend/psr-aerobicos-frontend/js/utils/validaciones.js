@@ -120,6 +120,9 @@ const ValidacionesPSR = {
     if (!limpio || isNaN(numero) || numero <= 0) {
       return { valido: false, mensaje: "El monto debe ser un valor numérico mayor a cero." };
     }
+    if (limpio.length > 8) {
+      return { valido: false, mensaje: "El monto no puede superar ocho dígitos enteros." };
+    }
     return { valido: true, valor: numero };
   },
 
@@ -147,6 +150,72 @@ const ValidacionesPSR = {
       return;
     }
     elementoAlerta.classList.add("d-none");
+  },
+
+  mostrarAlertaConexion: function (mensaje) {
+    if (!document.body) return;
+
+    let alerta = document.getElementById("psr-alerta-conexion-global");
+    if (!alerta) {
+      alerta = document.createElement("div");
+      alerta.id = "psr-alerta-conexion-global";
+      alerta.className = "psr-alert psr-alert-error psr-alert-conexion-global d-none";
+      alerta.setAttribute("role", "alert");
+
+      const texto = document.createElement("span");
+      texto.dataset.conexionMensaje = "true";
+      alerta.appendChild(texto);
+
+      const cerrar = document.createElement("button");
+      cerrar.type = "button";
+      cerrar.className = "btn-close";
+      cerrar.setAttribute("aria-label", "Cerrar aviso de conexión");
+      cerrar.addEventListener("click", function () {
+        alerta.classList.add("d-none");
+      });
+      alerta.appendChild(cerrar);
+      document.body.appendChild(alerta);
+    }
+
+    alerta.querySelector("[data-conexion-mensaje]").textContent = mensaje;
+    alerta.classList.remove("d-none");
+
+    let modal = document.getElementById("psr-modal-error-conexion");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "psr-modal-error-conexion";
+      modal.className = "modal fade";
+      modal.tabIndex = -1;
+      modal.setAttribute("aria-labelledby", "psr-modal-error-conexion-titulo");
+      modal.setAttribute("aria-hidden", "true");
+      modal.innerHTML =
+        '<div class="modal-dialog modal-dialog-centered">' +
+          '<div class="modal-content psr-modal">' +
+            '<div class="modal-header">' +
+              '<h2 class="modal-title" id="psr-modal-error-conexion-titulo">Conexión no disponible</h2>' +
+              '<button type="button" class="btn-close-psr" data-bs-dismiss="modal" aria-label="Cerrar">' +
+                '<i class="ph-bold ph-x"></i>' +
+              '</button>' +
+            '</div>' +
+            '<div class="modal-body">' +
+              '<div class="psr-alert psr-alert-error mb-3" role="alert">' +
+                '<i class="ph-bold ph-warning-circle" aria-hidden="true"></i>' +
+                '<span data-conexion-modal-mensaje></span>' +
+              '</div>' +
+              '<p class="psr-conexion-modal-ayuda mb-0">Comprueba que la base de datos esté encendida y vuelve a intentarlo.</p>' +
+            '</div>' +
+            '<div class="modal-footer">' +
+              '<button type="button" class="btn-psr-primary" data-bs-dismiss="modal">Entendido</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(modal);
+    }
+
+    modal.querySelector("[data-conexion-modal-mensaje]").textContent = mensaje;
+    if (window.bootstrap && window.bootstrap.Modal && !modal.classList.contains("show")) {
+      window.bootstrap.Modal.getOrCreateInstance(modal).show();
+    }
   },
 
   formatearCOP: function (monto) {
